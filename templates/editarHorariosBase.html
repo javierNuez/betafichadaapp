@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Horarios x legajo</title>
+    <link rel="stylesheet" href="../static/css/bootstrap.css">
+    <style>
+        table,
+        th,
+        td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'nav.html' %}
+    <div class="container mt-5">
+        <div class="card p-3 mb-4">
+            <h4>Editar todos los horarios del legajo</h4>
+            <div class="row mb-2">
+                <div class="col-md-4">
+                    <input type="number" id="legajoInput" class="form-control" placeholder="Ingrese legajo">
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary" onclick="buscarHorarios()">Buscar</button>
+                </div>
+            </div>
+
+            <form id="formHorarios" style="display: none;" onsubmit="guardarTodos(event)">
+                <div id="contenedorHorarios"></div>
+                <button type="submit" class="btn btn-success mt-3">Guardar Todos</button>
+            </form>
+        </div>
+        <script>
+            const dias = {
+                1: "Lunes",
+                2: "Martes",
+                3: "Miércoles",
+                4: "Jueves",
+                5: "Viernes",
+                6: "Sábado",
+                7: "Domingo"
+            };
+
+            async function buscarHorarios() {
+                const legajo = document.getElementById("legajoInput").value;
+                const response = await fetch(`/api/horarios/${legajo}`);
+                const form = document.getElementById("formHorarios");
+                const contenedor = document.getElementById("contenedorHorarios");
+
+                if (!response.ok) {
+                    alert("No se encontraron horarios para ese legajo");
+                    form.style.display = "none";
+                    return;
+                }
+
+                const horarios = await response.json();
+                contenedor.innerHTML = "";
+
+                horarios.forEach(h => {
+                    const grupo = document.createElement("div");
+                    grupo.className = "row mb-2";
+                    grupo.innerHTML = `
+                <input type="hidden" name="id" value="${h.id}">
+                <div class="col-md-2">
+                    <strong>${dias[h.dia_inicio]}</strong>
+                </div>
+                <div class="col-md-2">
+                    <input type="time" name="hora_inicio_${h.id}" value="${h.hora_inicio}" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <input type="time" name="hora_fin_${h.id}" value="${h.hora_fin}" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <input type="text" name="tipo_${h.id}" value="${h.tipo}" class="form-control">
+                </div>
+            `;
+                    contenedor.appendChild(grupo);
+                });
+
+                form.style.display = "block";
+            }
+
+            async function guardarTodos(event) {
+                event.preventDefault();
+
+                const form = document.getElementById("formHorarios");
+                const ids = Array.from(form.querySelectorAll('input[name="id"]')).map(i => i.value);
+
+                for (const id of ids) {
+                    const data = {
+                        hora_inicio: form.querySelector(`[name="hora_inicio_${id}"]`).value,
+                        hora_fin: form.querySelector(`[name="hora_fin_${id}"]`).value,
+                        tipo: form.querySelector(`[name="tipo_${id}"]`).value
+                    };
+
+                    await fetch(`/api/horario/${id}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(data)
+                    });
+                }
+
+                alert("Todos los horarios fueron actualizados");
+                location.reload();
+            }
+        </script>
+
+    </div>
+</body>

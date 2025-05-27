@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../static/css/bootstrap.css">
+    <title>Cargar Novedad</title>
+</head>
+<body>
+    {% include 'nav.html' %}
+    <div class="container mt-5">
+        <h1 class="mb-4">Cargar Novedad</h1>
+        <form action="/add_novedad" method="POST">
+            <div class="mb-3">
+                <label for="legajo" class="form-label">Legajo:</label>
+                <input type="number" class="form-control" id="legajo" name="legajo" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="fecha_inicio" class="form-label">Fecha de Inicio:</label>
+                <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="fecha_fin" class="form-label">Fecha de Fin:</label>
+                <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="hora_inicio" class="form-label">Hora de Inicio:</label>
+                <input type="time" class="form-control" id="hora_inicio" name="hora_inicio" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="hora_fin" class="form-label">Hora de Fin:</label>
+                <input type="time" class="form-control" id="hora_fin" name="hora_fin" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="motivo" class="form-label">Motivo:</label>
+                <textarea class="form-control" id="motivo" name="motivo" rows="3" required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Cargar Novedad</button>
+        </form>
+    </div>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

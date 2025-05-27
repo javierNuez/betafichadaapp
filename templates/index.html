@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Principal</title>
+    <link rel="stylesheet" href="../static/css/bootstrap.css">
+</head>
+<body>
+    {% include 'nav.html' %}
+    <div class="container">
+        <div class="title">Laboratorios Beta</div>
+        <h1>{{ equipo }}</h1>
+        <label id="relojFecha"></label>
+        <label id="relojHora"></label>
+    </div>
+
+    <script>
+        function actualizarReloj() {
+            const ahora = new Date();
+            const opciones = {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            const fecha = ahora.toLocaleDateString('es-ES');
+            const hora = ahora.toLocaleTimeString('es-ES', opciones);
+            document.getElementById('relojHora').textContent = `${hora}`;
+            document.getElementById('relojFecha').textContent = `${fecha}`;
+        }
+
+        setInterval(actualizarReloj, 1000); // Actualiza cada segundo
+        actualizarReloj(); // Llama inmediatamente para evitar el retraso inicial
+    </script>
+</body>
+</html>

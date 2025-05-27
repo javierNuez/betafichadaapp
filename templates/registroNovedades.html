@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Novedades</title>
+    <link rel="stylesheet" href="../static/css/bootstrap.css">
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    {% include 'nav.html' %}
+    
+    <div class="container mt-5">
+        <h1>Novedades</h1>
+        
+        <div class="mb-3">
+            <input type="text" id="searchInput" placeholder="Buscar..." onkeyup="filterTable()" class="form-control">
+        </div>
+        
+        <table id="novedadesTable" class="table table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Legajo</th>
+                    <th>Fecha Inicio</th>
+                    <th>Fecha Fin</th>
+                    <th>Hora Inicio</th>
+                    <th>Hora Fin</th>
+                    <th>Motivo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for novedad in novedades %}
+                <tr>
+                    <td>{{ novedad.id }}</td>
+                    <td>{{ novedad.legajo }}</td>
+                    <td>{{ novedad.fecha_inicio }}</td>
+                    <td>{{ novedad.fecha_fin }}</td>
+                    <td>{{ novedad.hora_inicio }}</td>
+                    <td>{{ novedad.hora_fin }}</td>
+                    <td>{{ novedad.motivo }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <a class="btn btn-primary" href="/novedad" role="button">Cargar Novedad</a>
+    </div>
+
+    <script>
+        const input = document.getElementById('searchInput');
+
+        input.addEventListener('blur', () => input.focus());
+
+        function filterTable() {
+            const filterValue = input.value.toLowerCase();
+            const rows = document.querySelectorAll('#novedadesTable tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                let match = false;
+                cells.forEach(cell => {
+                    if (cell.innerText.toLowerCase().includes(filterValue)) {
+                        match = true;
+                    }
+                });
+                row.style.display = match ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

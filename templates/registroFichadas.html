@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../static/css/bootstrap.css">
+    <title>Fichadas</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        .pagination-container button {
+            margin: 0 2px;
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'nav.html' %}
+    <div class="container mt-5">
+        <h1>Fichadas</h1>
+
+        <!-- Filtros por fecha -->
+        <div class="mb-3">
+            <label for="fecha1">Desde:</label>
+            <input type="date" id="fecha1" name="fecha1" value="{{ anterior }}">
+            <label for="fecha2">Hasta:</label>
+            <input type="date" id="fecha2" name="fecha2" value="{{ actual }}">
+            <button id="buscarBtn" class="btn btn-primary btn-sm">Buscar</button>
+
+            <div id="spinner" class="mt-3" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <span class="ms-2">Cargando datos...</span>
+            </div>
+        </div>
+
+        <!-- Búsqueda por texto -->
+        <div class="input-group mb-3">
+            <input type="text" id="searchInput" class="form-control" placeholder="Buscar...">
+            <button id="btnBuscarTexto" class="btn btn-outline-secondary" hidden>Buscar</button>
+        </div>
+
+        <!-- Tabla -->
+        <table id="fichadasTable" class="table table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Legajo</th>
+                    <th>Nombre y apellido</th>
+                    <th>Fecha hora</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for registro in registros %}
+                <tr>
+                    <td>{{ registro.legajo }}</td>
+                    <td>{{ registro.nombre }}</td>
+                    <td>{{ registro.fechaHora }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination-container mt-3"></div>
+
+        <!-- Script principal -->
+        <script>
+            const buscarBtn = document.getElementById("buscarBtn");
+            const spinner = document.getElementById("spinner");
+            const input = document.getElementById("searchInput");
+            const table = document.getElementById("fichadasTable");
+            const tbody = table.querySelector("tbody");
+            const pagination = document.getElementById("pagination");
+
+            const allRows = Array.from(tbody.querySelectorAll("tr"));
+            let filteredRows = [...allRows];
+            let rowsPerPage = 10;
+            let currentPage = 1;
+
+            // Función de paginación
+            function renderTable() {
+                allRows.forEach(row => row.style.display = 'none');
+
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                const pageRows = filteredRows.slice(start, end);
+                pageRows.forEach(row => row.style.display = '');
+
+                renderPagination();
+            }
+
+            function renderPagination() {
+                pagination.innerHTML = '';
+                const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+                if (totalPages <= 1) return;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const btn = document.createElement('button');
+                    btn.textContent = i;
+                    btn.className = 'btn btn-sm ' + (i === currentPage ? 'btn-primary' : 'btn-outline-primary');
+                    btn.addEventListener('click', () => {
+                        currentPage = i;
+                        renderTable();
+                    });
+                    pagination.appendChild(btn);
+                }
+            }
+
+            function applyTextFilter() {
+                const filterValue = input.value.toLowerCase();
+                filteredRows = allRows.filter(row =>
+                    Array.from(row.cells).some(cell =>
+                        cell.textContent.toLowerCase().includes(filterValue)
+                    )
+                );
+                currentPage = 1;
+                renderTable();
+            }
+
+            // Evento búsqueda por texto
+            document.getElementById('btnBuscarTexto').addEventListener('click', applyTextFilter);
+            input.addEventListener('input', applyTextFilter);
+            input.addEventListener('blur', () => input.focus());
+
+            // Inicial
+            renderTable();
+
+            // Buscar por fecha (ya lo tenías)
+            buscarBtn.addEventListener("click", function () {
+                const fecha1 = document.getElementById("fecha1").value;
+                const fecha2 = document.getElementById("fecha2").value;
+
+                if (!fecha1 || !fecha2) {
+                    alert("Ambas fechas son obligatorias.");
+                    return;
+                }
+
+                if (fecha1 > fecha2) {
+                    alert("La fecha 'Desde' debe ser menor o igual que la fecha 'Hasta'.");
+                    return;
+                }
+
+                spinner.style.display = "block";
+                buscarBtn.disabled = true;
+                buscarBtn.textContent = "Buscando...";
+
+                setTimeout(() => {
+                    const startTime = Date.now();
+                    fetch("/buscarFichadas", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ fecha1, fecha2 })
+                    })
+                        .then(response => {
+                            if (!response.ok) throw new Error("Error al enviar los datos");
+                            return response.json();
+                        })
+                        .then(data => {
+                            tbody.innerHTML = "";
+                            allRows.length = 0;
+
+                            if (data.length === 0) {
+                                const row = document.createElement("tr");
+                                row.innerHTML = `<td colspan="3">No se encontraron resultados.</td>`;
+                                tbody.appendChild(row);
+                            } else {
+                                data.forEach(registro => {
+                                    const row = document.createElement("tr");
+                                    row.innerHTML = `
+                                        <td>${registro.legajo}</td>
+                                        <td>${registro.nombre}</td>
+                                        <td>${registro.fechaHora}</td>`;
+                                    tbody.appendChild(row);
+                                    allRows.push(row);
+                                });
+                            }
+
+                            filteredRows = [...allRows];
+                            currentPage = 1;
+                            renderTable();
+                        })
+                        .catch(error => {
+                            console.error("Error:", error);
+                            alert("Hubo un problema al cargar los datos.");
+                        })
+                        .finally(() => {
+                            const elapsedTime = Date.now() - startTime;
+                            const remainingTime = Math.max(0, 5000 - elapsedTime);
+                            setTimeout(() => {
+                                spinner.style.display = "none";
+                                buscarBtn.disabled = false;
+                                buscarBtn.textContent = "Buscar";
+                            }, remainingTime);
+                        });
+                }, 0);
+            });
+        </script>
+    </div>
+</body>
+</html>

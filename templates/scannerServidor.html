@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Campo de Entrada con Focus Permanente</title>
+    <link rel="stylesheet" href="../static/css/estilos.css">
+</head>
+<body>
+    
+    <div class="title">Laboratorios Beta</div>
+    <h1>{{ equipo }}</h1>
+    <label id="relojFecha"></label>
+    <label id="relojHora"></label>
+    <div class="input-container">
+        <input type="text" id="miInput" placeholder="Escaneando..." onkeypress="checkEnter(event)">
+    </div>
+    <div id="modal">
+        <h2>Mensaje</h2>
+        <p id="modalMessage"></p>
+    </div>
+
+    <script>
+        const input = document.getElementById('miInput');
+        const modal = document.getElementById('modal');
+        const modalMessage = document.getElementById('modalMessage');
+        let timeoutId;
+        
+        function mantenerFocus() {
+            input.focus();
+        }
+
+        window.onload = () => {
+            mantenerFocus();
+            
+        };
+        input.addEventListener('blur', mantenerFocus);
+
+        input.addEventListener('input', () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                input.value = '';
+            }, 2000);
+        });
+
+        function checkEnter(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                clearTimeout(timeoutId); // Limpiar el timeout para evitar que se vacíe el input
+                procesarInput();
+            }
+        }
+
+        function procesarInput() {
+    const miInput = document.getElementById('miInput').value;
+
+    // Codificar en base64 antes de enviarlo
+    const encodedData = btoa(miInput);
+
+    fetch('/process_input', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `encoded_data=${encodedData}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        showModal(data.message, data.legajo, data.nombre);
+    })
+    .catch(error => console.error('Error:', error));
+
+    document.getElementById('miInput').value = '';
+}
+
+
+        function showModal(message, legajo, nombre) {
+            modalMessage.innerHTML = `${message}<br><span class="highlight">${legajo}</span><br><span class="highlight">${nombre}</span>`;
+            modal.classList.add('show');
+            //reproducir sonido en el navegador
+            console.log(nombre)
+            if ( nombre == undefined ){
+                nombre = "QR inválido!!";
+            }
+            //VOZ NAVEGADOR
+            /*
+            const utterance = new SpeechSynthesisUtterance(nombre);
+            
+            // Configurar la voz y la velocidad
+            utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === 'Google español de Estados Unidos' || voice.lang === 'es-ES'); // Selecciona una voz en español
+            utterance.rate = 0.6; // Velocidad de reproducción (1 es la velocidad normal, 0.5 es la mitad, 2 es el doble, etc.)
+
+            speechSynthesis.speak(utterance);
+            speechSynthesis.speak(new SpeechSynthesisUtterance(message));
+
+            */
+            setTimeout(function() {
+                modal.classList.remove('show');
+                //window.location.href = "http://127.0.0.1:5000/scanner";
+            }, 2500);
+        }
+
+        function actualizarReloj() {
+            const ahora = new Date();
+            const opciones = { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            };
+            const fecha = ahora.toLocaleDateString('es-ES');
+            const hora = ahora.toLocaleTimeString('es-ES', opciones);
+            document.getElementById('relojHora').textContent = `${hora}`;
+            document.getElementById('relojFecha').textContent = `${fecha}`;
+        }
+
+        setInterval(actualizarReloj, 1000); // Actualiza cada segundo
+        actualizarReloj(); // Llama inmediatamente para evitar el retraso inicial
+    </script>
+</body>
+</html>

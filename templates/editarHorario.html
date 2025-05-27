@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Horario</title>
+    <link rel="stylesheet" href="../static/css/bootstrap.css">
+</head>
+<body>
+    {% include 'nav.html' %}
+    <div class="container mt-5">
+        <h2>Editar Horario</h2>
+        <form method="POST">
+            <div class="mb-3">
+                <label for="legajo" class="form-label">Legajo</label>
+                <input type="text" class="form-control" name="legajo" value="{{ horario[1] }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="dia_inicio" class="form-label">Día Inicio</label>
+                <select name="dia_inicio" class="form-select" required>
+                    {% for num, dia in [(1, "Lunes"), (2, "Martes"), (3, "Miércoles"), (4, "Jueves"), (5, "Viernes"), (6, "Sábado"), (7, "Domingo")] %}
+                    <option value="{{ num }}" {% if horario[2] == num %}selected{% endif %}>{{ dia }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="hora_inicio" class="form-label">Hora Inicio</label>
+                <input type="time" class="form-control" name="hora_inicio" value="{{ horario[3] }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="dia_fin" class="form-label">Día Fin</label>
+                <select name="dia_fin" class="form-select" required>
+                    {% for num, dia in [(1, "Lunes"), (2, "Martes"), (3, "Miércoles"), (4, "Jueves"), (5, "Viernes"), (6, "Sábado"), (7, "Domingo")] %}
+                    <option value="{{ num }}" {% if horario[4] == num %}selected{% endif %}>{{ dia }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="hora_fin" class="form-label">Hora Fin</label>
+                <input type="time" class="form-control" name="hora_fin" value="{{ horario[5] or '' }}">
+            </div>
+            <div class="mb-3">
+                <label for="tipo" class="form-label">Tipo</label>
+                <input type="text" class="form-control" name="tipo" value="{{ horario[6] }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            <a href="/registroHorariosBase" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+</body>
+</html>

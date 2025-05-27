@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Personal</title>
+    <link rel="stylesheet" href="../static/css/bootstrap.css">
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        .pagination-container button {
+            margin: 0 2px;
+        }
+    </style>
+</head>
+<body>
+    {% include 'nav.html' %}
+
+    <div class="container mt-5">
+        <h1>Personal Beta</h1>
+
+        <!-- Buscador -->
+        <div class="mb-3">
+            <input type="text" id="searchInput" placeholder="Buscar..." class="form-control">
+        </div>
+
+        <!-- Tabla -->
+        <table id="personasTable" class="table table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Legajo</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Fecha de Ingreso</th>
+                    <th>Fecha de Egreso</th>
+                    <th>Sector</th>
+                    <th>Centro</th>
+                    <th>Categoria</th>
+                    <th>Estado</th>
+                    <th>Relación</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for persona in personas %}
+                <tr>
+                    <td>{{ persona.legajo }}</td>
+                    <td>{{ persona.nombre }}</td>
+                    <td>{{ persona.apellido }}</td>
+                    <td>{{ persona.fecha_ingreso }}</td>
+                    <td>{{ persona.fecha_egreso }}</td>
+                    <td>{{ persona.sector }}</td>
+                    <td>{{ persona.centro }}</td>
+                    <td>{{ persona.categoria }}</td>
+                    <td>{{ persona.estado }}</td>
+                    <td>{{ persona.relacion }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination-container mt-3"></div>
+
+        <!-- Botón para agregar -->
+        <a class="btn btn-primary mt-3" href="/add_persona" role="button">Agregar Persona</a>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        const input = document.getElementById('searchInput');
+        const table = document.getElementById('personasTable');
+        const tbody = table.querySelector('tbody');
+        const allRows = Array.from(tbody.querySelectorAll('tr'));
+        const pagination = document.getElementById('pagination');
+
+        let rowsPerPage = 10;
+        let currentPage = 1;
+        let filteredRows = [...allRows];
+
+        input.addEventListener('input', () => {
+            const filterValue = input.value.toLowerCase();
+            filteredRows = allRows.filter(row =>
+                Array.from(row.cells).some(cell =>
+                    cell.textContent.toLowerCase().includes(filterValue)
+                )
+            );
+            currentPage = 1;
+            renderTable();
+        });
+
+        function renderTable() {
+            // Ocultar todas
+            allRows.forEach(row => row.style.display = 'none');
+
+            // Calcular paginación
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const pageRows = filteredRows.slice(start, end);
+
+            // Mostrar solo las filas de esta página
+            pageRows.forEach(row => row.style.display = '');
+
+            // Renderizar botones de paginación
+            renderPagination();
+        }
+
+        function renderPagination() {
+            pagination.innerHTML = '';
+            const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+            if (totalPages <= 1) return;
+
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+                btn.className = 'btn btn-sm ' + (i === currentPage ? 'btn-primary' : 'btn-outline-primary');
+                btn.addEventListener('click', () => {
+                    currentPage = i;
+                    renderTable();
+                });
+                pagination.appendChild(btn);
+            }
+        }
+
+        // Mantener focus en input
+        input.addEventListener('blur', () => input.focus());
+
+        // Cargar tabla inicial
+        renderTable();
+    </script>
+</body>
+</html>

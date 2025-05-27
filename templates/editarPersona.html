@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Personas</title>
+    <link rel="stylesheet" href="../static/css/bootstrap.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        ul.suggestions {
+            list-style-type: none;
+            padding-left: 0;
+            border: 1px solid #ccc;
+            max-height: 150px;
+            overflow-y: auto;
+            position: absolute;
+            z-index: 1000;
+            background: white;
+            width: 100%;
+        }
+
+        ul.suggestions li {
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        ul.suggestions li:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+{% include 'nav.html' %}
+<div class="container mt-5">
+    <div class="card p-3 mb-4">
+        <h4>Buscar o crear persona</h4>
+        <div class="mb-3 position-relative">
+            <input type="text" id="busqueda" class="form-control" placeholder="Buscar por legajo o nombre">
+            <ul id="sugerencias" class="suggestions"></ul>
+        </div>
+
+        <form id="formPersona" style="display: none;" onsubmit="guardarPersona(event)">
+            <input type="hidden" id="personaId" value="">
+            <div class="row">
+                <div class="col-md-4"><label>Legajo</label><input type="number" id="legajo" class="form-control" required></div>
+                <div class="col-md-4"><label>Nombre</label><input type="text" id="nombre" class="form-control" required></div>
+                <div class="col-md-4"><label>Apellido</label><input type="text" id="apellido" class="form-control" required></div>
+                <div class="col-md-4"><label>DNI</label><input type="number" id="dni" class="form-control"></div>
+                <div class="col-md-4"><label>Fecha Ingreso</label><input type="date" id="fecha_ingreso" class="form-control"></div>
+                <div class="col-md-4"><label>Fecha Egreso</label><input type="date" id="fecha_egreso" class="form-control"></div>
+                <div class="col-md-4"><label>Sector</label><input type="text" id="sector" class="form-control"></div>
+                <div class="col-md-4"><label>Centro</label><input type="text" id="centro" class="form-control"></div>
+                <div class="col-md-4"><label>Categoría</label><input type="text" id="categoria" class="form-control"></div>
+                <div class="col-md-4"><label>Estado</label><input type="text" id="estado" class="form-control"></div>
+                <div class="col-md-4">
+                    <label for="relacion">Relación</label>
+                    <select id="relacion" class="form-control">
+                    <option value="Convenio">Convenio</option>
+                    <option value="Fuera C.">Fuera C.</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success mt-3">Guardar</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const $busqueda = $("#busqueda");
+    const $sugerencias = $("#sugerencias");
+
+    $busqueda.on("input", async function () {
+        const query = $busqueda.val();
+        if (query.length < 2) {
+            $sugerencias.empty();
+            return;
+        }
+
+        const res = await fetch(`/api/personas?q=${encodeURIComponent(query)}`);
+        const personas = await res.json();
+
+        $sugerencias.empty();
+        if (personas.length === 0) {
+            $sugerencias.append(`<li><em>Crear nueva persona: "${query}"</em></li>`);
+            $sugerencias.find("li").on("click", () => mostrarFormularioNuevo(query));
+        } else {
+            personas.forEach(p => {
+                const texto = `${p.legajo} - ${p.nombre} ${p.apellido}`;
+                const li = $(`<li>${texto}</li>`);
+                li.on("click", () => cargarPersona(p.id));
+                $sugerencias.append(li);
+            });
+        }
+    });
+
+    async function cargarPersona(id) {
+        const res = await fetch(`/api/personas/${id}`);
+        const p = await res.json();
+
+        $("#personaId").val(p.id);
+        $("#legajo").val(p.legajo);
+        $("#nombre").val(p.nombre);
+        $("#apellido").val(p.apellido);
+        $("#dni").val(p.dni);
+        $("#fecha_ingreso").val(p.fecha_ingreso);
+        $("#fecha_egreso").val(p.fecha_egreso);
+        $("#sector").val(p.sector);
+        $("#centro").val(p.centro);
+        $("#categoria").val(p.categoria);
+        $("#estado").val(p.estado);
+        $("#relacion").val(p.relacion);
+
+        $("#formPersona").show();
+        $sugerencias.empty();
+        $busqueda.val('');
+    }
+
+    function mostrarFormularioNuevo(nombreIngresado) {
+        $("#personaId").val('');
+        $("#nombre").val(nombreIngresado);
+        $("#formPersona input").not("#nombre").val('');
+        $("#formPersona").show();
+        $sugerencias.empty();
+    }
+
+    async function guardarPersona(event) {
+        event.preventDefault();
+
+        const id = $("#personaId").val();
+        const data = {
+            legajo: $("#legajo").val(),
+            nombre: $("#nombre").val(),
+            apellido: $("#apellido").val(),
+            dni: $("#dni").val(),
+            fecha_ingreso: $("#fecha_ingreso").val(),
+            fecha_egreso: $("#fecha_egreso").val(),
+            sector: $("#sector").val(),
+            centro: $("#centro").val(),
+            categoria: $("#categoria").val(),
+            estado: $("#estado").val(),
+            relacion: $("#relacion").val()
+        };
+
+        const url = id ? `/api/personas/${id}` : `/api/personas`;
+        const method = id ? "POST" : "PUT";
+
+        await fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        alert("Persona guardada con éxito");
+        location.reload();
+    }
+</script>
+</body>
+</html>

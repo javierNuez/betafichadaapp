@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Horarios personal</title>
+  <link rel="stylesheet" href="../static/css/bootstrap.css" />
+  <style>
+    table,
+    th,
+    td {
+      border: 1px solid black;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 8px;
+      text-align: left;
+    }
+
+    #spinner {
+      display: none;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+
+<body>
+  {% include 'nav.html' %}
+  <div class="container mt-5">
+    <h1>Horarios personal</h1>
+    <div class="mb-3 d-flex align-items-center">
+      <input type="text" id="searchInput" class="form-control" placeholder="Buscar..." />
+      <div id="spinner" class="spinner-border text-primary" role="status" style="width: 1.5rem; height: 1.5rem;">
+        <span class="visually-hidden">Buscando...</span>
+      </div>
+    </div>
+
+    <table id="tabla" class="table table-striped">
+      <thead class="table-dark">
+        <tr>
+          <th>Legajo</th>
+          <th>Nombre apellido</th>
+          <th>Día Inicio</th>
+          <th>Hora Inicio</th>
+          <th>Día Fin</th>
+          <th>Hora Fin</th>
+          <th>Tipo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for horario in horarios %}
+        <tr>
+          <td>{{ horario["legajo"] }}</td>
+          <td>{{ horario["nombreApellido"] }}</td>
+          <td>
+            {% if horario["dia_inicio"] == 1 %} Lunes{% endif %}
+            {% if horario["dia_inicio"] == 2 %} Martes{% endif %}
+            {% if horario["dia_inicio"] == 3 %} Miercoles{% endif %}
+            {% if horario["dia_inicio"] == 4 %} Jueves{% endif %}
+            {% if horario["dia_inicio"] == 5 %} Viernes{% endif %}
+            {% if horario["dia_inicio"] == 6 %} Sábado{% endif %}
+            {% if horario["dia_inicio"] == 7 %} Domingo{% endif %}
+          </td>
+          <td>{{ horario["hora_inicio"] }}</td>
+          <td>
+            {% if horario["dia_fin"] == 1 %} Lunes{% endif %}
+            {% if horario["dia_fin"] == 2 %} Martes{% endif %}
+            {% if horario["dia_fin"] == 3 %} Miercoles{% endif %}
+            {% if horario["dia_fin"] == 4 %} Jueves{% endif %}
+            {% if horario["dia_fin"] == 5 %} Viernes{% endif %}
+            {% if horario["dia_fin"] == 6 %} Sábado{% endif %}
+            {% if horario["dia_fin"] == 7 %} Domingo{% endif %}
+          </td>
+          <td>{{ horario["hora_fin"] if horario["hora_fin"] else 'No Especificado' }}</td>
+          <td>{{ horario["tipo"] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const input = document.getElementById('searchInput');
+    const spinner = document.getElementById('spinner');
+
+    // Mantener el foco en el input
+    input.addEventListener('blur', () => input.focus());
+
+    function debounce(func, delay) {
+      let timeoutId;
+      return function (...args) {
+        clearTimeout(timeoutId);
+        spinner.style.display = 'inline-block'; // mostrar spinner
+        timeoutId = setTimeout(() => {
+          func.apply(this, args);
+          spinner.style.display = 'none'; // ocultar spinner después del filtrado
+        }, delay);
+      };
+    }
+
+    function filterTable() {
+      const filterValue = input.value.toLowerCase();
+      const rows = document.querySelectorAll('#tabla tbody tr');
+      rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        let match = false;
+        cells.forEach(cell => {
+          if (cell.innerText.toLowerCase().includes(filterValue)) {
+            match = true;
+          }
+        });
+        row.style.display = match ? '' : 'none';
+      });
+    }
+
+    const debouncedFilter = debounce(filterTable, 300);
+    input.addEventListener('keyup', debouncedFilter);
+  </script>
+</body>
+
+</html>

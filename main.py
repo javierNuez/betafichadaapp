@@ -1,0 +1,828 @@
+import sqlite3
+from flask import render_template, request, redirect, flash, Flask, jsonify, url_for
+import DataBaseManager
+import FichadaService
+import HoraBaseService
+import InformesService
+import NovedadService
+import PersonaService
+import Utility
+import qr
+import Audio
+from datetime import datetime,timedelta
+import DataBaseInitializer
+from flask import Flask, render_template, request, redirect, flash, url_for
+import os
+
+
+
+
+
+
+UPLOAD_FOLDER = os.path.dirname(os.path.abspath(__file__))
+ALLOWED_EXTENSIONS = {'cro'}
+app = Flask(__name__)
+audioManager = Audio.AudioManager()
+
+@app.route('/tablaPersonas')
+def inicio():
+    try:
+        personas = DataBaseManager.obtenerPersonas()
+        cantidad = len(personas)
+        return render_template('registroPersonal.html', personas=personas, cantidad=cantidad)
+    except Exception as e:
+        print(f"Error: {e}")
+        return "Error al conectar con la base de datos"
+    finally:
+        print("inicio")
+
+
+
+@app.route('/editar', methods=['GET', 'POST'])
+def editar_persona():
+    legajo = request.args.get('legajo', type=int)
+
+    if request.method == 'POST':
+        datos = {
+            'legajo': request.form['legajo'],
+            'nombre': request.form['nombre'],
+            'apellido': request.form['apellido'],
+            'dni': request.form['dni'],
+            'fecha_ingreso': request.form['fecha_ingreso'],
+            'fecha_egreso': request.form['fecha_egreso'],
+            'sector': request.form['sector'],
+            'centro': request.form['centro'],
+            'categoria': request.form['categoria'],
+            'estado': request.form['estado'],
+            'relacion': request.form['relacion'],
+        }
+
+        if legajo:
+            PersonaService.actualizar_persona(legajo, datos)
+        else:
+            PersonaService.crear_persona(datos)
+
+        return render_template('editarPersona.html')
+
+    persona = None
+    if legajo:
+        persona = PersonaService.get_persona_by_legajo(legajo)
+
+    return render_template('editarPersona.html', persona=persona)
+
+@app.route("/api/personas", methods=["GET", "PUT"])
+@app.route("/api/personas/<int:persona_id>", methods=["GET", "POST"])
+def api_personas(persona_id=None):
+    personas = DataBaseManager.obtenerPersonas()
+
+    if request.method == "GET":
+        if persona_id is not None:
+            persona = next((p for p in personas if p['id'] == persona_id), None)
+            if persona:
+                return jsonify(dict(persona))  # Convertir a dict si es sqlite3.Row
+            return jsonify({"error": "Persona no encontrada"}), 404
+
+        query = request.args.get("q", "").lower()
+        if query:
+            resultado = [
+                dict(p) for p in personas
+                if (
+                    query in str(p['legajo']).lower()
+                    or query in (p['nombre'] or '').lower()
+                    or query in (p['apellido'] or '').lower()
+                )
+            ]
+            return jsonify(resultado)
+
+        return jsonify([dict(p) for p in personas])  # Convertir toda la lista
+
+    elif request.method == "POST":
+        datos = request.get_json()
+        if persona_id:
+            PersonaService.actualizar_persona(persona_id, datos)
+            return jsonify({"mensaje": "Persona actualizada"}), 200
+        else:
+            return jsonify({"error": "Falta ID de persona"}), 400
+
+    elif request.method == "PUT":
+        datos = request.get_json()
+        PersonaService.crear_persona(datos)
+        return jsonify({"mensaje": "Persona creada"}), 201
+
+
+
+
+@app.route('/editarHorarioBase')
+def ehb():
+    try:
+        pass
+        return render_template('editarHorariosBase.html')
+    except Exception as e:
+        print(f"Error: {e}")
+        return "Error "
+    finally:
+        print("editarHorarioBase")
+
+
+@app.route('/tablaFichadas', methods=['GET'])
+def ver_fichadas():
+    hoy = datetime.now().date() + timedelta(days=1)
+    anterior = hoy - timedelta(days=1)
+  
+    registros = DataBaseManager.obtenerFichadasPorFecha(anterior, hoy)
+    
+    
+    
+    return render_template("registroFichadas.html", registros=registros, actual = hoy, anterior = anterior)
+
+@app.route('/buscarFichadas', methods=['POST'])
+def buscar_fichadas():
+    data = request.get_json()
+    try:
+        fecha1 = datetime.strptime(data.get("fecha1"), "%Y-%m-%d")
+        fecha2 = datetime.strptime(data.get("fecha2"), "%Y-%m-%d") + timedelta(days=1)
+        
+        registros = DataBaseManager.obtenerFichadasPorFecha(fecha1, fecha2)
+        
+        lista_dict = [
+            {
+                "legajo": r["legajo"],
+                "nombre": r["nombre"],
+                "fechaHora": str(r["fechaHora"])
+            } for r in registros
+        ]
+        
+        return jsonify(lista_dict)
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": "Error al conectar con la base de datos"}), 500
+
+@app.route('/tablaNovedades')
+def novedades():
+    try:
+        novedades = DataBaseManager.obtenerNovedades()
+        cantidad = len(novedades)
+        return render_template('registroNovedades.html', novedades=novedades, cantidad=cantidad)
+    except Exception as e:
+        print(f"Error: {e}")
+        return "Error al conectar con la base de datos"
+    finally:
+        print("novedades")
+
+@app.route('/add_persona', methods=['GET', 'POST'])
+def add_persona():
+    if request.method == 'POST':
+        legajo = request.form['legajo']
+        nombre = request.form['nombre']
+        apellido = request.form['apellido']
+        dni = request.form['dni']
+        fecha_ingreso = request.form['fecha_ingreso']
+        fecha_egreso = request.form['fecha_egreso']
+        sector = request.form['sector']
+        centro = request.form['centro']
+        categoria = request.form['categoria']
+        if not fecha_egreso:  
+            fecha_egreso = None
+        else:
+            fecha_egreso = datetime.strptime(fecha_egreso, "%Y-%m-%d").date()
+
+        estado = 'Activo' if fecha_egreso is None or fecha_egreso > datetime.today().date() else 'Inactivo'
+
+        try:
+            if PersonaService.agregarPersona(legajo, nombre, apellido, dni, fecha_ingreso, fecha_egreso, sector, centro, categoria, estado):
+                flash('Persona añadida exitosamente!')
+            else:
+                flash('Hubo un error!')
+            return redirect('/tablaPersonas')
+        except Exception as e:
+            print(f"Error: {e}")
+            flash('Error al añadir persona.')
+            return redirect('/add_persona')
+        finally:
+            print("add_persona")
+    return render_template('add_persona.html')
+
+@app.route('/process_input', methods=['POST'])
+def process_input():
+    try:
+        # Obtener y decodificar el QR
+        encoded_data = request.form['encoded_data']
+        decoded_data = qr.QRProcessor.decodificar(encoded_data)
+        dato = qr.QRProcessor.decodificar(decoded_data)
+        
+        print("QR Decodificado:", dato)
+
+        empresa, legajo, nombre_apellido = dato.split('@')
+        encontrado = PersonaService.check_legajo(legajo)
+    
+        if not encontrado:
+            
+            return jsonify({'message': 'Error: No registrado', 'legajo': 'Error', 'nombre': 'Error'})
+
+        # Registrar a la persona en la base de datos
+        registro_exitoso = FichadaService.registrar_fichada(legajo, nombre_apellido)
+        audioManager.reproducir_mensaje(nombre_apellido)
+        if not registro_exitoso:
+            return jsonify({'message': 'Error en el registro', 'legajo': legajo, 'nombre': nombre_apellido})
+
+        # Responder con la información del usuario
+        response = {
+            'message': 'Registrado',
+            'legajo': legajo,
+            'nombre': nombre_apellido
+        }
+
+        return jsonify(response)
+
+    except Exception as e:
+        print(f"Error: {e}")
+        audioManager.reproducir_mensaje("ERROR, No registrado!")
+        return jsonify({'message': 'Error al procesar la entrada'}), 500
+
+#informeDiario
+from datetime import datetime, timedelta
+
+
+
+
+@app.route('/informeDiario', methods=["GET", "POST"])
+def reporteDia():
+    if request.method == "POST":
+        # 1. Obtener la fecha desde el formulario
+        fecha_str = request.form.get("fecha")
+        if fecha_str:
+            fecha_base = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+        else:
+            fecha_base = datetime.now().date()
+
+        # 2. Obtener datos desde la base
+        personas = DataBaseManager.obtenerPersonasBSAS()
+        horariosBase = DataBaseManager.obtenerHorarios()
+        fichadas = DataBaseManager.obtenerFichadas()
+        novedades = DataBaseManager.obtenerNovedades()
+
+        listaDelDia = []
+
+        for p in personas:
+            area = p[7]
+            legajo = p[1]
+            apellidoNombre = f"{p[3]} {p[2]}"
+            fecha_actual_dt = datetime.combine(fecha_base, datetime.min.time())
+
+            horaInicioBase = HoraBaseService.traerHoraInicioBaseDelDia(legajo, fecha_actual_dt, horariosBase)
+            horaInicioFichada = FichadaService.traerPrimeraHoraFichadaDelDia(legajo, fecha_actual_dt, fichadas)
+            horaFinBase = HoraBaseService.traerHoraFinBaseDelDia(legajo, fecha_actual_dt, horariosBase)
+            horaFinFichada = FichadaService.traerUltimaHoraFichadaDelDia(legajo, fecha_actual_dt, fichadas)
+
+            observaciones = ""
+            llegadasTarde = Utility.calcularDiferenciaParaLlegadasTarde(horaInicioBase, horaInicioFichada)
+            retiroDespuesHora = Utility.calcularDiferenciaParasalidasDespuesHora(horaFinBase, horaFinFichada)
+            horasTrabajadas = Utility.calcularHorasTrabajadas(horaInicioFichada, horaFinFichada)
+
+            if horaInicioBase:
+                hIB = datetime.strptime(horaInicioBase, "%H:%M").time()
+
+                if horaFinBase:
+                    hFB = datetime.strptime(horaFinBase, "%H:%M").time()
+                    if hIB > hFB:
+                        fecha_siguiente_dt = datetime.combine(fecha_base + timedelta(days=1), datetime.min.time())
+                        horaFinBase = HoraBaseService.traerHoraFinBaseDelDia(legajo, fecha_siguiente_dt, horariosBase)
+                        horaFinFichada = FichadaService.traerUltimaHoraFichadaDelDia(legajo, fecha_siguiente_dt, fichadas)
+                else:
+                    fecha_siguiente_dt = datetime.combine(fecha_base + timedelta(days=1), datetime.min.time())
+                    horaFinBase = HoraBaseService.traerHoraFinBaseDelDia(legajo, fecha_siguiente_dt, horariosBase)
+                    horaFinFichada = FichadaService.traerUltimaHoraFichadaDelDia(legajo, fecha_siguiente_dt, fichadas)
+
+            if horaInicioBase or horaFinBase:
+                registro = [
+                    area, legajo, apellidoNombre,
+                    fecha_base, horaInicioBase, horaInicioFichada,
+                    horaFinBase, horaFinFichada, observaciones, llegadasTarde,
+                    retiroDespuesHora, horasTrabajadas
+                ]
+                listaDelDia.append(registro)
+
+    else:
+        # Método GET: no se busca información
+        fecha_base = datetime.now().date()
+        listaDelDia = []
+
+    try:
+        return render_template(
+            'informeDia.html',
+            listaDelDia=listaDelDia,
+            fecha=fecha_base.isoformat()
+        )
+    except Exception as e:
+        print(f"Error al renderizar la plantilla: {e}")
+        return "Error al conectar con la base de datos"
+    finally:
+        print("Informe diario ejecutado")
+
+from flask import render_template, request
+from datetime import datetime, timedelta
+
+@app.route('/ausentes', methods=["GET", "POST"])
+def reporteAusentes():
+    # 1. Obtener la fecha desde el formulario o usar la fecha actual
+    if request.method == "POST":
+        fecha_str = request.form.get("fecha")
+    else:
+        fecha_str = None
+
+    if fecha_str:
+        fecha_base = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+    else:
+        fecha_base = datetime.now().date()
+
+    # 2. Obtener datos desde la base
+    personas = DataBaseManager.obtenerPersonasBSAS()
+    
+    fichadas = DataBaseManager.obtenerFichadas()
+    
+
+    listaDelDia = []
+
+    for p in personas:
+        area = p[7]
+        legajo = p[1]
+        apellidoNombre = f"{p[3]} {p[2]}"
+        fecha_actual_dt = datetime.combine(fecha_base, datetime.min.time())
+
+        
+        horaInicioFichada = FichadaService.traerPrimeraHoraFichadaDelDia(legajo, fecha_actual_dt, fichadas)
+        
+        horaFinFichada = FichadaService.traerUltimaHoraFichadaDelDia(legajo, fecha_actual_dt, fichadas)
+
+        relacion = p[11]
+        if horaInicioFichada == None and horaFinFichada == None:
+            observaciones = "Ausente"
+        
+            registro = [fecha_base, area, legajo, apellidoNombre,observaciones,relacion]
+            listaDelDia.append(registro)
+
+    try:
+        return render_template(
+            'ausentes.html',
+            listaDelDia=listaDelDia,
+            fecha=fecha_base.isoformat()
+        )
+    except Exception as e:
+        print(f"Error al renderizar la plantilla: {e}")
+        return "Error al conectar con la base de datos"
+    finally:
+        print("Informe diario ejecutado")
+
+
+@app.route('/scanner')
+def scanner():
+    # Obtener la dirección IP del cliente
+    ip_cliente = request.remote_addr
+    # Obtener el nombre del equipo cliente usando la dirección IP
+    #nombre_equipo_cliente = obtener_nombre_equipo(ip_cliente)
+    nombre_equipo_cliente = Utility.obtener_nombre_equipo(ip_cliente)
+    
+         
+    try:
+        return render_template('scannerServidor.html', equipo=nombre_equipo_cliente)
+    except Exception as e:
+        print(f"Error al renderizar la plantilla: {e}")
+        return "Error al conectar con la base de datos"
+    finally:
+        print("scanner ejecutado")
+
+
+
+@app.route("/add_horarios_base_semanal", methods=["GET", "POST"])
+def agregar_horarios():
+    legajos = obtener_legajos() 
+    tipo = "Semanal"
+    if request.method == "POST":
+        
+        legajo = request.form["legajo"]
+        dias = request.form.getlist("dias")  # Lista con los días seleccionados (1 al 7)
+        hora_inicio = request.form["hora_inicio"]
+        hora_fin = request.form["hora_fin"] if request.form["hora_fin"] else None  # Puede ser NULL
+
+        HoraBaseService.insertarHorasSemanal(legajo,dias,hora_inicio,hora_fin,tipo)
+
+        return redirect("/registroHorariosBase")
+
+    return render_template("add_horarios_base_semanal.html", legajos = legajos)
+
+@app.route("/add_horarios_base", methods=["GET", "POST"])
+def horarios():
+    legajos = obtener_legajos()
+    tipo = "Rotativo"
+    if request.method == "POST":
+        legajo = request.form["legajo"]
+        dia_inicio = request.form["dia_inicio"]
+        hora_inicio = request.form["hora_inicio"]
+        dia_fin = request.form.get("dia_fin", None)
+        hora_fin = request.form.get("hora_fin", None)
+
+        if not dia_fin:
+            dia_fin = None
+        if not hora_fin:
+            hora_fin = None
+
+        HoraBaseService.insertar_horario_base(legajo, dia_inicio, hora_inicio, tipo, dia_fin, hora_fin)
+
+    return render_template("add_horario_base.html", legajos = legajos)
+
+@app.route("/registroHorariosBase")
+def ver_horarios():
+    horarios = DataBaseManager.obtenerHorarios()
+    rows_dicts = [dict(r) for r in horarios]
+
+    for row in rows_dicts:
+        legajo = row.get("legajo")  # usa el nombre real de la columna
+        row["nombreApellido"] = PersonaService.obtener_nombre_por_legajo(legajo)
+        print(rows_dicts)
+
+    return render_template("registroHorariosBase.html", horarios=rows_dicts)
+
+@app.route("/editarHorario/<int:id>", methods=["GET", "POST"])
+def editar_horario(id):
+    conexion = DataBaseInitializer.get_db_connection("horariosBase")
+    cursor = conexion.cursor()
+
+    if request.method == "POST":
+        legajo = request.form["legajo"]
+        dia_inicio = request.form["dia_inicio"]
+        hora_inicio = request.form["hora_inicio"]
+        dia_fin = request.form["dia_fin"]
+        hora_fin = request.form["hora_fin"]
+        tipo = request.form["tipo"]
+
+        cursor.execute("""
+            UPDATE horariosBase 
+            SET legajo=?, dia_inicio=?, hora_inicio=?, dia_fin=?, hora_fin=?, tipo=? 
+            WHERE id=?
+        """, (legajo, dia_inicio, hora_inicio, dia_fin, hora_fin, tipo, id))
+        conexion.commit()
+        conexion.close()
+        return redirect("/registroHorariosBase")
+    
+    cursor.execute("SELECT * FROM horariosBase WHERE id = ?", (id,))
+    horario = cursor.fetchone()
+    conexion.close()
+    return render_template("editarHorario.html", horario=horario)
+
+
+@app.route("/api/horarios/<int:legajo>", methods=["GET"])
+def get_horarios_de_legajo(legajo):
+    conexion = DataBaseInitializer.get_db_connection("horariosBase")
+    cursor = conexion.cursor()
+    cursor.execute("SELECT * FROM horariosBase WHERE legajo = ?", (legajo,))
+    rows = cursor.fetchall()
+    conexion.close()
+
+    horarios = []
+    for row in rows:
+        horarios.append({
+            "id": row[0],
+            "legajo": row[1],
+            "dia_inicio": row[2],
+            "hora_inicio": row[3],
+            "dia_fin": row[4],
+            "hora_fin": row[5],
+            "tipo": row[6]
+        })
+
+    if not horarios:
+        return jsonify({"error": "No se encontraron horarios para este legajo"}), 404
+
+    return jsonify(horarios)
+
+
+@app.route("/api/horario/<int:id>", methods=["POST"])
+def actualizar_horario(id):
+    data = request.json
+    conexion = DataBaseInitializer.get_db_connection("horariosBase")
+    cursor = conexion.cursor()
+
+    cursor.execute("""
+        UPDATE horariosBase 
+        SET hora_inicio=?, hora_fin=?, tipo=?
+        WHERE id=?
+    """, (
+        data["hora_inicio"], data["hora_fin"], data["tipo"], id
+    ))
+
+    conexion.commit()
+    conexion.close()
+    return jsonify({"success": True})
+
+
+def obtener_legajos():
+    personas = DataBaseManager.obtenerPersonas()
+    legajos = []
+    for l in personas:
+        legajos.append(l[1])
+    return legajos
+
+
+
+
+
+
+
+
+@app.route('/generar_fichadas', methods=["GET", "POST"])
+def generador_fichadas():
+    msj = ""
+    if request.method == "POST":
+        try:
+            # Validación de datos
+            legajo = int(request.form["legajo"])
+            inicio = request.form["inicio"]
+            fin = request.form["fin"]
+            horaInicio = datetime.strptime(inicio, "%H:%M")
+            horaFin = datetime.strptime(fin, "%H:%M")
+            puntualidad = request.form["tipo"]
+            
+            if puntualidad not in ['puntual', 'regular', 'impuntual']:
+                raise ValueError("Tipo de puntualidad inválido")
+            
+            # Generar y agregar fichadas a la base de datos
+            fichadas = FichadaService.generar_fichadas(legajo, horaInicio, horaFin, puntualidad)
+            FichadaService.agregar_fichadas_a_bd(fichadas)
+            
+            msj = f"Las fichadas han sido agregadas a la base de datos. Total de fichadas: {len(fichadas)}"
+        except Exception as e:
+            msj = f"Error: {str(e)}"
+    
+    return render_template("generador.html", mensaje=msj)
+
+@app.route('/generar_fichada_manual', methods=["GET", "POST"])
+def generador_fichada_manual():
+    msj = ""
+    if request.method == "POST":
+        try:
+            # Validación de datos
+            fechaHora = request.form["fechaHora"]+":00.1"
+            
+            legajo = int(request.form["legajo"])
+            nombre = request.form["nombre"]
+            fh = datetime.strptime(fechaHora, "%Y-%m-%dT%H:%M:%S.%f")
+            FichadaService.registrar_fichada_manual(legajo, nombre, fh)
+            msj = f"La fichada han sido agregada en la base de datos."
+        except Exception as e:
+            msj = f"Error: {str(e)}"
+    
+    return render_template("fichada_manual.html", mensaje=msj)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/upload', methods=["GET",'POST'])
+def upload_file():
+    if request.method == "GET":
+        return render_template('upload.html')
+    if request.method == "POST":
+        if 'file' not in request.files:
+            flash('No se envió ningún archivo')
+            return redirect(request.url)
+    
+        file = request.files['file']
+
+        if file.filename == '':
+            flash('No se seleccionó ningún archivo')
+            return redirect(request.url)
+
+        if file and allowed_file(file.filename):
+            filename = 'Fichadas.cro'  # Nombre fijo o usa file.filename
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            flash('Archivo subido exitosamente')
+            if Utility.traerNuevasFichadas():
+                flash('Se actualizaron las fichadas exitosamente')
+            return render_template('upload.html')
+        else:
+            flash('Tipo de archivo no permitido. Solo se aceptan archivos .cro')
+            return render_template('upload.html')
+
+@app.route('/')
+def menu():
+    #Utility.generarFichadas() #genera archivo resultado paso 1
+    #Utility.procesar_fichadas_desde_csv() #genera fichadas desde resultado a bd fichadas paso 2
+    #PersonaService.importar_personas_desde_api() #Se utiliza para traer los datos de Internos
+    #HoraBaseService.insertarHorasEstimadas()
+    #HoraBaseService.cargar_horarios_desde_excel()
+    #PersonaService.delete_personas_by_legajos([2183,2184,2330,2410,2570,2589,2590,2592,2845,2869])#para eliminar legajos de Personal BD
+    #Utility.actualizar_personas_desde_excel()
+    #Utility.actualizarCategorias()
+    return render_template("index.html")
+
+@app.route('/informe_llegadas')
+def informe_llegadas():
+    return render_template('llegadas_tarde.html')
+
+
+# Función auxiliar para parsear fechas con o sin microsegundos
+def parse_fecha_hora(fecha_str):
+    try:
+        return datetime.strptime(fecha_str, "%Y-%m-%d %H:%M:%S.%f")
+    except ValueError:
+        return datetime.strptime(fecha_str, "%Y-%m-%d %H:%M:%S")
+
+from datetime import datetime
+from flask import render_template
+
+@app.route('/llegadas_tarde_hoy', methods=['GET', 'POST'])
+def llegadas_tardes_hoy():
+    
+    if request.method == 'POST':
+        fecha = request.form['fecha']
+    else:
+        fecha_actual = datetime.now().date()  # Esto da un objeto date
+        fecha = fecha_actual.isoformat()  # 'YYYY-MM-DD'
+    registros = []
+    # Convertimos la lista de listas en un diccionario
+    legajosConRelacion = {legajo: relacion for legajo, relacion in PersonaService.obtenerLegajoRelacion()}
+    horarios = DataBaseManager.obtenerHorarios()
+    fichadasDia = DataBaseManager.obtenerFichadasPorFechaDia(fecha)
+    primeras_fichadas = {}
+
+    for f in fichadasDia:
+        legajo = f["legajo"]
+
+        if legajo in legajosConRelacion:
+            fila_dict = dict(f)
+
+            # Parsear la fechaHora
+            if isinstance(fila_dict["fechaHora"], str):
+                try:
+                    fila_dict["fechaHora"] = datetime.strptime(fila_dict["fechaHora"], "%Y-%m-%d %H:%M:%S.%f")
+                except ValueError:
+                    fila_dict["fechaHora"] = datetime.strptime(fila_dict["fechaHora"], "%Y-%m-%d %H:%M:%S")
+
+            fila_dict["fechaHora"] = fila_dict["fechaHora"].replace(second=0, microsecond=0)
+
+            if legajo not in primeras_fichadas or fila_dict["fechaHora"] < primeras_fichadas[legajo]["fechaHora"]:
+                primeras_fichadas[legajo] = fila_dict
+
+    for legajo, fichada in primeras_fichadas.items():
+        fecha_fichada = fichada["fechaHora"].date()
+        fichada["horarioEsperado"] = HoraBaseService.traerHoraInicioBaseDelDia(legajo, fecha_fichada, horarios)
+        fichada["relacion"] = legajosConRelacion[legajo]  # ← aquí se agrega la relación
+
+    registros = list(primeras_fichadas.values())
+    
+    return render_template('llegadas_tarde_hoy.html', registros=registros,fecha = fecha )
+
+
+
+    
+
+    
+
+@app.route('/llegadas_tarde', methods=['GET'])
+def llegadas_tarde():
+    try:
+        def formatear_minutos(minutos):
+            horas = minutos // 60
+            mins = minutos % 60
+            if horas > 0:
+                return f"{horas}h {mins}min"
+            return f"{mins}min"
+
+        # Obtener parámetros
+        try:
+            legajo = int(request.args.get('legajo'))
+        except:
+            legajo = 0
+        
+        tolerancia = int(request.args.get('tolerancia'))
+        tolerancia += 1
+        fecha_inicio = request.args.get('fecha_inicio')
+        fecha_fin = request.args.get('fecha_fin')
+
+        print("Parámetros recibidos:", tolerancia, fecha_inicio, fecha_fin)
+
+        fi = datetime.strptime(fecha_inicio, "%Y-%m-%d") if isinstance(fecha_inicio, str) else fecha_inicio
+        ff = datetime.strptime(fecha_fin, "%Y-%m-%d") if isinstance(fecha_fin, str) else fecha_fin
+
+        datos = InformesService.obtener_datos_para_informe(legajo, fi.date(), ff.date())
+        llegadas_tarde = []
+        total_minutos_demorados = 0
+
+        dias_rango = [fi + timedelta(days=i) for i in range((ff - fi).days + 1)]
+
+        for dia in dias_rango:
+            fecha_str = dia.strftime("%Y-%m-%d")
+            dia_semana = dia.isoweekday()
+
+            if any(n["fecha_inicio"] <= fecha_str <= n["fecha_fin"] for n in datos["novedades"]):
+                continue
+
+            horarios_del_dia = [h for h in datos["horarios"] if h["dia_inicio"] == dia_semana]
+            if not horarios_del_dia:
+                continue
+
+            hora_esperada_str = horarios_del_dia[0]["hora_inicio"]
+            hora_esperada_dt = datetime.strptime(f"{fecha_str} {hora_esperada_str}", "%Y-%m-%d %H:%M")
+            hora_tolerada_dt = hora_esperada_dt + timedelta(minutes=tolerancia)
+
+            fichadas_del_dia = [f for f in datos["fichadas"] if f["fechaHora"].startswith(fecha_str)]
+            if not fichadas_del_dia:
+                continue
+
+            fichada_entrada = min([parse_fecha_hora(f["fechaHora"]) for f in fichadas_del_dia])
+
+            if fichada_entrada > hora_tolerada_dt:
+                minutos_demorado = int((fichada_entrada - hora_esperada_dt).total_seconds() // 60)
+                total_minutos_demorados += minutos_demorado
+                llegadas_tarde.append({
+                    "fecha": fecha_str,
+                    "hora_prevista": hora_esperada_dt.strftime("%H:%M"),
+                    "hora_fichada": fichada_entrada.strftime("%H:%M"),
+                    "minutos_demorado": minutos_demorado
+                })
+
+        return jsonify({
+            "legajo": legajo,
+            "nombre": f'{datos["persona"]["nombre"]} {datos["persona"]["apellido"]}',
+            "cantidad_llegadas_tarde": len(llegadas_tarde),
+            "total_minutos_demorados": total_minutos_demorados,
+            "total_demorado_formateado": formatear_minutos(total_minutos_demorados),
+            "detalle": llegadas_tarde
+        })
+
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({"error": str(e)}), 400
+
+@app.route('/novedad', methods=['GET', 'POST'])
+def novedad():
+    if request.method == 'POST':
+        legajo = request.form['legajo']
+        fecha_inicio = request.form['fecha_inicio']
+        fecha_fin = request.form['fecha_fin']
+        hora_inicio = request.form['hora_inicio']
+        hora_fin = request.form['hora_fin']
+        motivo = request.form['motivo']
+        print("Novedad:", legajo, motivo)
+        try:
+            NovedadService.cargar_novedad(int(legajo), fecha_inicio, fecha_fin, hora_inicio, hora_fin, motivo)
+            return redirect(url_for('add_novedad'))  # o a una página de confirmación
+        except Exception as e:
+            return f"Error al cargar la novedad: {e}", 400
+
+    return render_template('add_novedad.html')
+
+@app.route('/add_novedad', methods=['POST'])
+def agregar_novedad():
+    if request.method == 'POST':
+        legajo = request.form['legajo']
+        fecha_inicio = request.form['fecha_inicio']
+        fecha_fin = request.form['fecha_fin']
+        hora_inicio = request.form['hora_inicio']
+        hora_fin = request.form['hora_fin']
+        motivo = request.form['motivo']
+        print("Novedad:", legajo, motivo)
+        try:
+            NovedadService.cargar_novedad(int(legajo), fecha_inicio, fecha_fin, hora_inicio, hora_fin, motivo)
+            
+        except Exception as e:
+            return f"Error al cargar la novedad: {e}", 400
+
+    return redirect("/tablaNovedades")
+
+@app.route('/comprobarBase/<base>')
+def comprobarBases(base):
+    conn = DataBaseInitializer.get_db_connection(base)
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{base}';")
+    table_exists = cursor.fetchone()
+    conn.close()
+    if table_exists:
+        return f"La tabla '{base}' existe."
+    else:
+        return f"La tabla '{base}' no se ha creado."
+
+
+@app.route('/api/persona')
+def obtener_persona_api():
+    legajo = request.args.get('legajo', type=int)
+    nombre = request.args.get('nombre', type=str)
+
+    persona = None
+    if legajo:
+        persona = PersonaService.get_persona_by_legajo(legajo)
+    elif nombre:
+        persona = PersonaService.get_persona_by_nombre(nombre)
+
+    if persona:
+        return jsonify(persona)
+    else:
+        return jsonify({'error': 'Persona no encontrada'}), 404
+
+
+
+if __name__ == '__main__':
+    app.config['SECRET_KEY'] = 'vigoray'
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    app.run(host="0.0.0.0", port=5000, debug=True)
+    

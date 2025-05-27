@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Horarios</title>
+    <link rel="stylesheet" href="../static/css/bootstrap.css">
+</head>
+<body>
+    {% include 'nav.html' %}
+    <div class="container mt-5">
+        <h2>Registro de horario rotativo</h2>
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">Legajo</label>
+                <select name="legajo" class="form-control" required>
+                    <option value="">Seleccione</option>
+                    {% for legajo in legajos %}
+                      <option value="{{ legajo }}">{{ legajo }}</option>
+                    {% endfor %}
+                  </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Día de Inicio</label>
+                <select name="dia_inicio" class="form-control" required>
+                    <option value="1">Lunes</option>
+                    <option value="2">Martes</option>
+                    <option value="3">Miércoles</option>
+                    <option value="4">Jueves</option>
+                    <option value="5">Viernes</option>
+                    <option value="6">Sábado</option>
+                    <option value="7">Domingo</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Hora de Inicio</label>
+                <input type="time" name="hora_inicio" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Día de Fin (opcional)</label>
+                <select id="diaFin" name="dia_fin" class="form-control">
+                    <option value="">Mismo Día</option>
+                    <option value="1">Lunes</option>
+                    <option value="2">Martes</option>
+                    <option value="3">Miércoles</option>
+                    <option value="4">Jueves</option>
+                    <option value="5">Viernes</option>
+                    <option value="6">Sábado</option>
+                    <option value="7">Domingo</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Hora de Fin (opcional)</label>
+                <input type="time" name="hora_fin" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary">Guardar Horario</button>
+        </form>
+    </div>
+    
+    
+</body>
+</html>

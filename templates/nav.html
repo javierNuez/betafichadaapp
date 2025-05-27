@@ -1,0 +1,79 @@
+<nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top" >
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">Administración BSAS</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+      aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav mx-auto justify-content-center">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+            aria-expanded="false">
+            Informes
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/ausentes">Ausentes</a></li>
+            <li><a class="dropdown-item" href="/informeDiario">Reporte del día</a></li>
+            <li><a class="dropdown-item" href="/llegadas_tarde_hoy">Llegadas tardes por fecha</a></li>
+            <li><a class="dropdown-item" href="/informe_llegadas">Llegadas tarde por legajo</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+            aria-expanded="false">
+            Personal
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/tablaPersonas">BD personal</a></li>
+            <li><a class="dropdown-item" href="/add_persona">Agregar</a></li>
+            <li><a class="dropdown-item" href="/editar">Editar persona</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+            aria-expanded="false">
+            Fichadas
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/tablaFichadas">BD Fichadas</a></li>
+            <li><a class="dropdown-item" href="/scanner">Ingreso por QR</a></li>
+            <li><a class="dropdown-item" href="/generar_fichada_manual">Ingreso fichada manual</a></li>
+            
+            <li><a class="dropdown-item" href="/upload">Subir archivo desde Cronos</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+            aria-expanded="false">
+            Novedades
+          </a>
+          <ul class="dropdown-menu ">
+            <li><a class="dropdown-item disabled" href="/tablaNovedades" >BD Novedades</a></li>
+            <li><a class="dropdown-item disabled" href="/novedad">Cargar novedad</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+            aria-expanded="false">
+            Horarios Personal
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#">BD horarios (en desarrollo 'lento')</a></li><!--href="/registroHorariosBase"-->
+            <li><a class="dropdown-item" href="/add_horarios_base">Agregar por día</a></li>
+            <li><a class="dropdown-item" href="/add_horarios_base_semanal">Agregar por semana</a></li>
+            <li><a class="dropdown-item" href="/editarHorarioBase">Editar horario por legajo</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<br>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.4/dist/js/bootstrap.bundle.min.js"
+  integrity="sha384-YUe2LzesAfftltw+PEaao2tjU/QATaW/rOitAq67e0CT0Zi2VVRL0oC4+gAaeBKu"
+  crossorigin="anonymous"></script>

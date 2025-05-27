@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ingreso manual</title>
+    <link rel="stylesheet" href="../static/css/bootstrap.css">
+</head>
+<body>
+
+    <div class="container">
+        {% include 'nav.html' %}
+        <h1 class="mt-5">Ingreso de registro fichada</h1>
+        <p>Entrada manual de fichadas.</p>
+        <form method="POST" action="/generar_fichada_manual">
+            <div class="form-group">
+                <label for="legajo">Legajo:</label>
+                <input type="number" class="form-control" id="legajo" name="legajo" required>
+            </div>
+            <div class="form-group">
+                <label for="legajo">Nombre & apellido:</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" required>
+            </div>
+            <div class="form-group">
+                <label for="fechaHora">Fecha:</label>
+                <input type="datetime-local" class="form-control" id="fechaHora" name="fechaHora" required>
+                
+            </div>
+            
+            
+            <button type="submit" class="btn btn-primary">Ingresar Fichadas</button>
+        </form>
+        {% if mensaje %}
+        <div class="alert alert-info mt-3">
+            {{ mensaje }}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
+

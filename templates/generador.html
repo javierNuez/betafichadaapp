@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Generador de Fichadas</title>
+    <link rel="stylesheet" href="../static/css/bootstrap.css">
+</head>
+<body>
+
+    <div class="container">
+        {% include 'nav.html' %}
+        <h1 class="mt-5">Generador de Fichadas</h1>
+        <p>Se generaran fichadas por 30 días atrás sin contar los sábados y domingos.</p>
+        <form method="POST" action="/generar_fichadas">
+            <div class="form-group">
+                <label for="legajo">Legajo:</label>
+                <input type="number" class="form-control" id="legajo" name="legajo" required>
+            </div>
+            <div class="form-group">
+                <label for="inicio">Hora de Inicio (HH:MM):</label>
+                <input type="time" class="form-control" id="inicio" name="inicio" required>
+                <label for="fin">Hora de Fin (HH:MM):</label>
+                <input type="time" class="form-control" id="fin" name="fin" required>
+            </div>
+            <div class="form-group">
+                <label for="tipo">Tipo de Puntualidad:</label>
+                <select class="form-control" id="tipo" name="tipo" required>
+                    <option value="puntual">Puntual</option>
+                    <option value="regular">Regular</option>
+                    <option value="impuntual">Impuntual</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Generar Fichadas</button>
+        </form>
+        {% if mensaje %}
+        <div class="alert alert-info mt-3">
+            {{ mensaje }}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
+

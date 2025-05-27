@@ -1,0 +1,125 @@
+
+        @import url('https://fonts.googleapis.com/css2?family=Avant+Garde&display=swap');
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(to bottom, #1e3c72, #2a5298); /* Degradado azul */
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+        table, th, td {
+            border: 1px solid #fff;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        #modal {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 60px; /* Tres veces más grande */
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            text-align: center;
+            width: 80%;
+            max-width: 1200px; /* Tres veces más grande */
+            transition: all 0.05s ease-in-out; /* Transición más rápida */
+            z-index: 1000;
+        }
+        #modal.show {
+            display: block;
+        }
+        #modal h2 {
+            margin-top: 0;
+            font-size: 72px; /* Tres veces más grande */
+            color: #1a77ad;
+        }
+        #modal p {
+            font-size: 48px; /* Tres veces más grande */
+        }
+        .highlight {
+            color: #194acf;
+            font-weight: bold;
+            font-size: 96px; /* Dos veces más grande */
+        }
+        .input-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        input[type="text"] {
+            width: 50%;
+            padding: 10px;
+            font-size: 18px;
+            border: 2px solid #1a77ad;
+            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            transition: border 0.3s ease-in-out;
+        }
+        input[type="text"]:focus {
+            border-color: #194acf;
+            outline: none;
+        }
+        .title {
+            font-family: 'Avant Garde', sans-serif;
+            font-size: 15vh; /* 15% del área de la pantalla */
+            text-align: center;
+            color: #1a77ad;
+            position: relative;
+            animation: wave 5s infinite; /* Animación más lenta */
+        }
+        .title::before {
+            content: 'Laboratorios Beta';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            color: #fff;
+            opacity: 0.2; /* 60% más tenue */
+            filter: blur(4px);
+            animation: glow 2s infinite;
+        }
+        @keyframes wave {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-2px); /* Movimiento más tenue */
+            }
+        }
+        @keyframes glow {
+            0%, 100% {
+                opacity: 0.2; /* 60% más tenue */
+            }
+            50% {
+                opacity: 0.3; /* 60% más tenue */
+            }
+        }
+        #relojFecha {
+            font-size: 15vh;
+            font-weight: bold;
+            display: block;
+            margin-top: 20px;
+            color: rgb(186, 198, 209);
+        }
+        #relojHora {
+            font-size: 20vh;
+            font-weight: bold;
+            display: block;
+            margin-top: 20px;
+            color: rgb(221, 221, 201);
+        }
+    
