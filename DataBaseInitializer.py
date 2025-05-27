@@ -106,8 +106,8 @@ def obtener_horarios_estimados():
     return resultados
 
 def get_db_connection(tabla):
-    ruta = os.path.join("BaseDatos",f"{tabla}.db")
-    #ruta = fr"BaseDatos\{tabla}.db"
+    #ruta = os.path.join("BaseDatos",f"{tabla}.db")
+    ruta = fr"{tabla}.db"
     db_exists = os.path.exists(ruta)
     conn = sqlite3.connect(ruta)
     if not db_exists:
