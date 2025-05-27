@@ -54,7 +54,7 @@ def registrar_fichada_manual_sin_repetir(legajo, nombre, fechaHora):
         existe = cursor.fetchone()
 
         if existe:
-            print("Fichada ya registrada.")
+            #print("Fichada ya registrada.")
             return False
 
         # Si no existe, insertar la nueva fichada
