@@ -4,7 +4,7 @@ from flask import app
 import DataBaseInitializer
 
 def obtenerPersonas():
-    conn = DataBaseInitializer.get_db_connection("personas")
+    conn = DataBaseInitializer.get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM personas")
@@ -13,7 +13,7 @@ def obtenerPersonas():
     return personas
 
 def obtenerPersonasBSAS():
-    conn = DataBaseInitializer.get_db_connection("personas")
+    conn = DataBaseInitializer.get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute("""SELECT * 
@@ -25,7 +25,7 @@ def obtenerPersonasBSAS():
     return personas
 
 def obtenerFichadas():
-    conn = DataBaseInitializer.get_db_connection("fichadas")
+    conn = DataBaseInitializer.get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM fichadas")
@@ -34,7 +34,7 @@ def obtenerFichadas():
     return fichadas
 
 def obtenerFichadasPorFecha(fecha1, fecha2):
-    conn = DataBaseInitializer.get_db_connection("fichadas")
+    conn = DataBaseInitializer.get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     consulta = """
@@ -50,7 +50,7 @@ def obtenerFichadasPorFecha(fecha1, fecha2):
     return fichadas
 
 def obtenerHorarios():
-    conn = DataBaseInitializer.get_db_connection("horariosBase")
+    conn = DataBaseInitializer.get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM horariosBase order by dia_inicio")
@@ -65,7 +65,7 @@ def obtenerHorarios():
 
 
 def obtenerNovedades():
-    conn = DataBaseInitializer.get_db_connection("novedades")
+    conn = DataBaseInitializer.get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM novedades")
@@ -74,7 +74,7 @@ def obtenerNovedades():
     return novedades
 
 def obtenerFichadasPorFechaDia(fecha):
-    conn = DataBaseInitializer.get_db_connection("fichadas")
+    conn = DataBaseInitializer.get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     

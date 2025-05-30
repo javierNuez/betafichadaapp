@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import platform
 import socket
@@ -168,23 +168,20 @@ def calcularDiferenciaParasalidasDespuesHora(t1, t2):
 
 def calcularHorasTrabajadas(t1, t2):
     try:
-        # Asegurarse de que t1 y t2 estén en formato HH:MM
-        t1 = f"{t1}:00"
-        t2 = f"{t2}:00"
-        tiempo1 = datetime.strptime(t1, "%H:%M:%S")
-        tiempo2 = datetime.strptime(t2, "%H:%M:%S")
+        # Asegurar formato HH:MM
+        tiempo1 = datetime.strptime(t1, "%H:%M")
+        tiempo2 = datetime.strptime(t2, "%H:%M")
 
-        if tiempo1 < tiempo2:
-            diferencia = tiempo2 - tiempo1 
-            horas, resto = divmod(diferencia.seconds, 3600)
-            minutos, segundos = divmod(resto, 60)
-
-            # Formatear con ceros a la izquierda
-            return f"{horas:02}:{minutos:02}:{segundos:02}"
+        if tiempo1 <= tiempo2:
+            diferencia = tiempo2 - tiempo1
         else:
-            return "No"
-    except ValueError:
-        return "Sin info."
+            # Si la hora de inicio es mayor, asumo que cruza medianoche
+            diferencia = (datetime.strptime("23:59", "%H:%M") - tiempo1) + (tiempo2 - datetime.strptime("00:00", "%H:%M")) + timedelta(minutes=1)
+
+        horas = diferencia.seconds / 3600  # Convierte segundos a horas decimales
+        return horas
+    except Exception:
+        return 0
     
 
 

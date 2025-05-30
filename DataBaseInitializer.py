@@ -104,7 +104,7 @@ def obtener_horarios_estimados():
                 })
 
     return resultados
-
+"""
 def get_db_connection(tabla):
     #ruta = os.path.join("BaseDatos",f"{tabla}.db")
     ruta = fr"{tabla}.db"
@@ -122,13 +122,39 @@ def get_db_connection(tabla):
             create_tables_novedades(conn)
         elif tabla == "horasExtras":
             create_tables_horasExtras(conn)
-    """        
-    else:
-        print(f"Base de datos {tabla} encontrada.")
-        #check_tables(conn, tabla)
-    """    
+       
     conn.row_factory = sqlite3.Row
     return conn
+"""
+def get_db_connection():
+    ruta = "BDtablas.db"
+    conn = sqlite3.connect(ruta)
+    conn.row_factory = sqlite3.Row  # Para poder acceder a las columnas como diccionarios
+
+    cursor = conn.cursor()
+
+    # Diccionario de tablas y funciones para crearlas
+    tablas_esperadas = {
+        "personas": create_tables_personas,
+        "fichadas": create_tables_fichadas,
+        "horariosBase": create_tables_horariosBase,
+        "novedades": create_tables_novedades,
+        "horasExtras": create_tables_horasExtras
+    }
+
+    for nombre_tabla, funcion_creacion in tablas_esperadas.items():
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name=?;",
+            (nombre_tabla,)
+        )
+        if not cursor.fetchone():
+            print(f"Tabla '{nombre_tabla}' no existe. Creándola...")
+            funcion_creacion(conn)
+        else:
+            print(f"Tabla '{nombre_tabla}' ya existe.")
+
+    return conn
+
 
 def check_tables(conn, tabla):
     try:

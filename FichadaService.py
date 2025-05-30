@@ -44,7 +44,7 @@ def registrar_fichada_manual(legajo, nombre, fechaHora):
 
 def registrar_fichada_manual_sin_repetir(legajo, nombre, fechaHora):
     try:
-        conn = DataBaseInitializer.get_db_connection("fichadas")
+        conn = DataBaseInitializer.get_db_connection()
         cursor = conn.cursor()
 
         # Verificar si ya existe una fichada con el mismo legajo y fechaHora

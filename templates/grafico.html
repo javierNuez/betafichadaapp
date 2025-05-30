@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gráfico de Fichadas</title>
+
+    <!-- Bootstrap agregado -->
+    <link rel="stylesheet" href="../static/css/bootstrap.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2em;
+        }
+
+        h1,
+        h2 {
+            margin-bottom: 0.5em;
+        }
+
+        canvas {
+            margin-top: 2em;
+            max-width: 1000px;
+            max-height: 600px;
+        }
+
+        .filtros {
+            margin-bottom: 1em;
+        }
+
+        .filtros input,
+        .filtros select {
+            margin-right: 1em;
+            padding: 0.4em;
+            font-size: 1em;
+        }
+
+        #spinner {
+            display: none;
+            font-size: 1.2em;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'nav.html' %}
+    <h1>Grafico de horas trabajadas</h1>
+
+    <div class="filtros">
+        <label>Desde: <input type="date" id="fechaDesde" value="{{ fecha_desde }}"></label>
+        <label>Hasta: <input type="date" id="fechaHasta" value="{{ fecha_hasta }}"></label>
+
+        <label>Tipo:
+            <select id="tipoSelect">
+                <option value="">Todos</option>
+                <option value="Convenio" {% if tipo=='Convenio' %}selected{% endif %}>Convenio</option>
+                <option value="Fuera de convenio" {% if tipo=='Fuera de convenio' %}selected{% endif %}>Fuera de
+                    convenio</option>
+            </select>
+
+        </label>
+
+        <label>Sector:
+            <select id="sectorSelect">
+                <option value="">Todos</option>
+                {% for f in fichadas %}
+                <option value="{{ f['sector'] }}" {% if f['sector']==sector %}selected{% endif %}>{{ f['sector'] }}
+                </option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <button onclick="filtrar()">Filtrar</button>
+    </div>
+
+    <div id="spinner">🔄 Procesando consulta...</div>
+
+    <canvas id="graficoFichadas"></canvas>
+
+    <script>
+        function filtrar() {
+            const desde = document.getElementById('fechaDesde').value;
+            const hasta = document.getElementById('fechaHasta').value;
+            const tipo = document.getElementById('tipoSelect').value;
+            const sector = document.getElementById('sectorSelect').value;
+
+            document.getElementById('spinner').style.display = 'block';
+
+            const query = new URLSearchParams({
+                fecha_desde: desde,
+                fecha_hasta: hasta,
+                tipo: tipo,
+                sector: sector
+            }).toString();
+
+            window.location.href = `/grafico?${query}`;
+        }
+
+        const fichadas = {{ fichadas| tojson }};
+        const nombres = fichadas.map(f => f.nombre);
+        const horasTrabajadas = fichadas.map(f => parseFloat(f.horas_trabajadas || 0));
+
+        const ctx = document.getElementById('graficoFichadas').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: nombres,
+                datasets: [{
+                    label: 'Horas trabajadas',
+                    data: horasTrabajadas,
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    barThickness: 30 // barras más gruesas
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Horas'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Empleado'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `Horas trabajadas entre {{ fecha_desde or fecha }} y {{ fecha_hasta or fecha }}`
+                    },
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: context => `${context.parsed.x} horas`
+                        }
+                    }
+                }
+            }
+        });
+
+        // Oculta el spinner cuando la página termina de cargar
+        window.onload = () => {
+            document.getElementById('spinner').style.display = 'none';
+        };
+    </script>
+</body>
+
+</html>

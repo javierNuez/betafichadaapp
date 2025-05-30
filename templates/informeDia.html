@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -73,45 +74,49 @@
         <table class="table table-striped">
             <thead class="table-dark">
                 <tr>
-                    <th>Área</th>
-                    <th>Legajo</th>
-                    <th>Apellido y Nombre</th>
-                    <th>Fecha</th>
-                    <th>Entrada</th>
-                    <th>Entrada Real</th>
-                    <th>Salida</th>
-                    <th>Salida Real</th>
-                    <th>Observaciones</th>
-                    <th>Llegada Tarde</th>
-                    <th>Retiro Después de Hora</th>
-                    <th>Horas Trabajadas</th>
-                    <th>Vacaciones</th>
-                    <th>Enfermedad</th>
-                    <th>Hs. Trabajadas (180)</th>
+                    <th>Área</th> <!--0-->
+                    <th>Legajo</th><!--1-->
+                    <th>Apellido y Nombre</th><!--2-->
+                    <th>Fecha</th><!--3-->
+                    <th>E/S teorica.</th><!--4--><!--6-->
+                    <th>Entrada fichada</th><!--5-->
+                    
+                    <th>Salida fichada</th><!--7-->
+                    <th>Observaciones</th><!--8-->
+                    <th>Llegada Tarde</th><!--9-->
+                    <th>Retiro Después de Hora</th><!--10-->
+                    <th>Horas Trabajadas</th><!--11-->
+                    <th>Relación</th><!--11-->
+
                 </tr>
             </thead>
             <tbody>
                 {% for l in listaDelDia %}
-                    <tr>
+                    <tr {% if l[5] == None and l[7] == None %} style="background-color: #ffe6e6;" {% endif %}>
                         <td>{{ l[0] }}</td>
                         <td>{{ l[1] }}</td>
                         <td>{{ l[2] }}</td>
                         <td>{{ l[3] }}</td>
-                        <td>{{ l[4] }}</td>
+                        <td>{{ l[4] }} a {{ l[6] }}</td>
                         <td>{{ l[5] }}</td>
-                        <td>{{ l[6] }}</td>
+                        
                         <td>{{ l[7] }}</td>
-                        <td>{{ l[8] }}
-                            {% if l[5] == None and l[7] == None %}
-                            <span style="color: chocolate;">Ausente</span>
-                            {% endif %}
-                        </td>
+                        <td title="{{ l[8] if l[8] else '' }}">
+    {% if l[8] %}
+        {{ l[8][:25] }}{% if l[8]|length > 25 %}...{% endif %}
+    {% else %}
+        -
+    {% endif %}
+    {% if l[5] == None and l[7] == None %}
+        <span style="color: chocolate;">Ausente</span>
+    {% endif %}
+
+</td>
+
                         <td>{{ l[9] }}</td>
                         <td>{{ l[10] }}</td>
                         <td>{{ l[11] }}</td>
                         <td>{{ l[12] }}</td>
-                        <td>{{ l[13] }}</td>
-                        <td>{{ l[14] }}</td>
                     </tr>
                 {% endfor %}
             </tbody>

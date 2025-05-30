@@ -244,7 +244,7 @@ from datetime import datetime, timedelta
 
 
 
-
+"""
 @app.route('/informeDiario', methods=["GET", "POST"])
 def reporteDia():
     if request.method == "POST":
@@ -319,8 +319,184 @@ def reporteDia():
     finally:
         print("Informe diario ejecutado")
 
-from flask import render_template, request
-from datetime import datetime, timedelta
+def obtener_fichadas_por_fecha(fecha_str): #para grafico
+    if fecha_str:
+        fecha_base = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+    else:
+        fecha_base = datetime.now().date()
+
+    personas = DataBaseManager.obtenerPersonasBSAS()
+    horariosBase = DataBaseManager.obtenerHorarios()
+    fichadas = DataBaseManager.obtenerFichadas()
+    novedades = DataBaseManager.obtenerNovedades()
+
+    listaDelDia = []
+
+    for p in personas:
+        area = p[7]
+        legajo = p[1]
+        apellidoNombre = f"{p[3]} {p[2]}"
+        fecha_actual_dt = datetime.combine(fecha_base, datetime.min.time())
+
+        horaInicioBase = HoraBaseService.traerHoraInicioBaseDelDia(legajo, fecha_actual_dt, horariosBase)
+        horaInicioFichada = FichadaService.traerPrimeraHoraFichadaDelDia(legajo, fecha_actual_dt, fichadas)
+        horaFinBase = HoraBaseService.traerHoraFinBaseDelDia(legajo, fecha_actual_dt, horariosBase)
+        horaFinFichada = FichadaService.traerUltimaHoraFichadaDelDia(legajo, fecha_actual_dt, fichadas)
+
+        observaciones = ""
+        llegadasTarde = Utility.calcularDiferenciaParaLlegadasTarde(horaInicioBase, horaInicioFichada)
+        retiroDespuesHora = Utility.calcularDiferenciaParasalidasDespuesHora(horaFinBase, horaFinFichada)
+        horasTrabajadas = Utility.calcularHorasTrabajadas(horaInicioFichada, horaFinFichada)
+
+        if horaInicioBase:
+            hIB = datetime.strptime(horaInicioBase, "%H:%M").time()
+            if horaFinBase:
+                hFB = datetime.strptime(horaFinBase, "%H:%M").time()
+                if hIB > hFB:
+                    fecha_siguiente_dt = datetime.combine(fecha_base + timedelta(days=1), datetime.min.time())
+                    horaFinBase = HoraBaseService.traerHoraFinBaseDelDia(legajo, fecha_siguiente_dt, horariosBase)
+                    horaFinFichada = FichadaService.traerUltimaHoraFichadaDelDia(legajo, fecha_siguiente_dt, fichadas)
+            else:
+                fecha_siguiente_dt = datetime.combine(fecha_base + timedelta(days=1), datetime.min.time())
+                horaFinBase = HoraBaseService.traerHoraFinBaseDelDia(legajo, fecha_siguiente_dt, horariosBase)
+                horaFinFichada = FichadaService.traerUltimaHoraFichadaDelDia(legajo, fecha_siguiente_dt, fichadas)
+
+        if horaInicioBase or horaFinBase:
+            registro = {
+                "sector": area,
+                "legajo": legajo,
+                "nombre": apellidoNombre,
+                "fecha": fecha_base.isoformat(),
+                "hora_inicio_base": horaInicioBase,
+                "hora_inicio_fichada": horaInicioFichada,
+                "hora_fin_base": horaFinBase,
+                "hora_fin_fichada": horaFinFichada,
+                "observacion": observaciones,
+                "llegadas_tarde": llegadasTarde,
+                "retiro_despues": retiroDespuesHora,
+                "horas_trabajadas": horasTrabajadas
+            }
+            listaDelDia.append(registro)
+
+    return listaDelDia, fecha_base
+"""
+@app.route('/informeDiario', methods=["GET", "POST"])
+def informe_diario():
+    fecha = datetime.now().date()
+    listaDelDia = []
+
+    if request.method == 'POST':
+        fecha = request.form.get('fecha')
+        if fecha:
+            conn = DataBaseInitializer.get_db_connection()
+            cursor = conn.cursor()
+
+            query = '''WITH fichadas_filtradas AS (
+    SELECT 
+        p.legajo,
+        DATE(f.fechaHora) AS fecha,
+        time(f.fechaHora) AS hora,
+        f.fechaHora,
+        hb.hora_inicio,
+        hb.hora_fin,
+        ABS(strftime('%s', time(f.fechaHora)) - strftime('%s', '1970-01-01 ' || hb.hora_inicio)) AS diff_inicio,
+        ABS(strftime('%s', time(f.fechaHora)) - strftime('%s', '1970-01-01 ' || hb.hora_fin)) AS diff_fin
+    FROM fichadas f
+    JOIN personas p ON p.legajo = f.legajo
+    LEFT JOIN horariosBase hb ON p.legajo = hb.legajo
+    WHERE p.sector != 'Fuerza de ventas' 
+      AND p.legajo < 4000
+      AND DATE(f.fechaHora) = ?
+),
+clasificadas AS (
+    SELECT 
+        legajo,
+        fecha,
+        hora_inicio,
+        hora_fin,
+        CASE 
+            WHEN COUNT(*) = 1 THEN 
+                CASE 
+                    WHEN MIN(diff_inicio) <= MIN(diff_fin) THEN MIN(hora)
+                    ELSE NULL
+                END
+            ELSE MIN(hora)
+        END AS entrada,
+        CASE 
+            WHEN COUNT(*) = 1 THEN 
+                CASE 
+                    WHEN MIN(diff_fin) < MIN(diff_inicio) THEN MAX(hora)
+                    ELSE NULL
+                END
+            ELSE MAX(hora)
+        END AS salida
+    FROM fichadas_filtradas
+    GROUP BY legajo, fecha
+)
+SELECT 
+    p.sector AS area,
+    p.legajo,
+    p.apellido || ', ' || p.nombre AS nombre_completo,
+    c.fecha,
+    c.hora_inicio,
+    c.entrada,
+    c.hora_fin,
+    c.salida,
+
+    CASE 
+    WHEN c.entrada IS NOT NULL AND c.salida IS NOT NULL AND c.entrada = c.salida THEN 'Revisar (única fichada, aún en la empresa)'
+    WHEN c.salida < c.hora_fin THEN 'Ret.Anticipado'
+    WHEN c.entrada IS NOT NULL AND c.salida IS NULL THEN 'Dentro de la empresa'
+    WHEN c.entrada IS NULL AND c.salida IS NOT NULL THEN 'Revisar'
+    WHEN c.entrada > c.hora_inicio THEN 'Tarde'
+    ELSE '-'
+END AS observaciones,
+
+
+    CASE 
+        WHEN c.entrada > c.hora_inicio THEN 
+            printf('%02d:%02d', 
+                (strftime('%s', c.entrada) - strftime('%s', c.hora_inicio)) / 3600,
+                ((strftime('%s', c.entrada) - strftime('%s', c.hora_inicio)) % 3600) / 60
+            )
+        ELSE '-' 
+    END AS llegada_tarde,
+
+    CASE 
+    WHEN c.salida > c.hora_fin THEN 
+        printf('%02d:%02d', 
+            (strftime('%s', c.salida) - strftime('%s', c.hora_fin)) / 3600,
+            ((strftime('%s', c.salida) - strftime('%s', c.hora_fin)) % 3600) / 60
+        )
+    ELSE '-' 
+END AS retiro_despues_hora,
+
+
+
+    CASE 
+        WHEN c.entrada IS NOT NULL AND c.salida IS NOT NULL THEN 
+            ROUND((strftime('%s', c.salida) - strftime('%s', c.entrada)) / 3600.0, 2)
+        ELSE 0
+    END AS horas_trabajadas,
+
+    p.relacion
+
+FROM clasificadas c
+JOIN personas p ON p.legajo = c.legajo
+WHERE p.sector != 'Fuerza de ventas' AND p.legajo < 4000
+ORDER BY c.fecha, p.legajo;
+
+
+'''
+
+            params = (fecha,)
+            cursor.execute(query, params)
+            listaDelDia = cursor.fetchall()
+            
+            conn.close()
+
+    return render_template('informeDia.html', fecha=fecha, listaDelDia=listaDelDia)
+
 
 @app.route('/ausentes', methods=["GET", "POST"])
 def reporteAusentes():
@@ -818,6 +994,123 @@ def obtener_persona_api():
         return jsonify(persona)
     else:
         return jsonify({'error': 'Persona no encontrada'}), 404
+
+
+
+
+
+from datetime import datetime, timedelta
+from flask import request, redirect, url_for, render_template
+
+@app.route('/grafico')
+def grafico():
+    print("Inicio Proceso:", datetime.today())
+    fecha_desde_str = request.args.get('fecha_desde')
+    fecha_hasta_str = request.args.get('fecha_hasta')
+    tipo = request.args.get('tipo')    # Lo seguimos recibiendo para mantener la URL
+    sector = request.args.get('sector')  # Igual
+
+    # Si no vienen fechas, por defecto uso el día anterior
+    if not fecha_desde_str or not fecha_hasta_str:
+        ayer = datetime.today().date() - timedelta(days=1)
+        fecha_desde = ayer
+        #fecha_hasta = ayer + timedelta(days=1)
+        fecha_hasta = ayer
+        return redirect(url_for('grafico', 
+                                fecha_desde=fecha_desde.isoformat(),
+                                fecha_hasta=fecha_hasta.isoformat(),
+                                tipo=tipo or '',
+                                sector=sector or ''))
+
+    try:
+        fecha_desde = datetime.strptime(fecha_desde_str, "%Y-%m-%d").date()
+        fecha_hasta = datetime.strptime(fecha_hasta_str, "%Y-%m-%d").date()
+    except ValueError:
+        ayer = datetime.today().date() - timedelta(days=1)
+        fecha_desde = ayer
+        fecha_hasta = ayer + timedelta(days=1)
+        return redirect(url_for('grafico', 
+                                fecha_desde=fecha_desde.isoformat(),
+                                fecha_hasta=fecha_hasta.isoformat(),
+                                tipo=tipo or '',
+                                sector=sector or ''))
+
+    # Llamamos sin filtros tipo y sector, solo fechas
+    fichadas = obtener_datos_fichadas(fecha_desde, fecha_hasta, tipo, sector)
+
+    print("Fin Proceso:", datetime.today())
+    return render_template(
+        "grafico.html", 
+        fichadas=fichadas, 
+        fecha_desde=fecha_desde.isoformat(), 
+        fecha_hasta=fecha_hasta.isoformat(),
+        tipo=tipo,
+        sector=sector
+    )
+
+def obtener_datos_fichadas(fecha_desde_str, fecha_hasta_str, tipo=None, sector=None):
+    conn = DataBaseInitializer.get_db_connection()
+    cursor = conn.cursor()
+
+    query = '''
+        SELECT 
+            p.legajo,
+            p.apellido || ', ' || p.nombre AS nombre,
+            p.sector,
+            p.relacion AS tipo_personal,
+            ROUND(SUM(sub.horas_trabajadas), 2) AS horas_trabajadas
+        FROM personas p
+        JOIN (
+            SELECT 
+                f.legajo,
+                DATE(f.fechaHora) AS fecha,
+                CASE 
+                    WHEN COUNT(*) > 1 THEN 
+                        (JULIANDAY(MAX(f.fechaHora)) - JULIANDAY(MIN(f.fechaHora))) * 24
+                    ELSE 0
+                END AS horas_trabajadas
+            FROM fichadas f
+            WHERE DATE(f.fechaHora) BETWEEN ? AND ?
+            GROUP BY f.legajo, DATE(f.fechaHora)
+        ) sub ON p.legajo = sub.legajo
+        WHERE p.sector != 'Fuerza de ventas'
+          AND p.legajo < 4000
+    '''
+
+    params = [fecha_desde_str, fecha_hasta_str]
+
+    if tipo:
+        query += " AND p.relacion = ?"
+        params.append(tipo)
+
+    if sector:
+        query += " AND p.sector = ?"
+        params.append(sector)
+
+    query += '''
+        GROUP BY p.legajo
+        HAVING horas_trabajadas > 0
+        ORDER BY horas_trabajadas DESC;
+    '''
+
+    cursor.execute(query, params)
+    resultados = cursor.fetchall()
+    conn.close()
+
+    datos = []
+    for fila in resultados:
+        datos.append({
+            'legajo': fila[0],
+            'nombre': fila[1],
+            'sector': fila[2],
+            'tipo_personal': fila[3],
+            'horas_trabajadas': fila[4]
+        })
+
+    return datos
+
+
+
 
 
 
