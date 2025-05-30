@@ -55,7 +55,7 @@ def delete_personas_by_legajos(legajos):
     if not legajos:
         return  # No hay nada que eliminar
 
-    conn = DataBaseInitializer.get_db_connection("personas")
+    conn = DataBaseInitializer.get_db_connection()
     try:
         cursor = conn.cursor()
         # Crear una cláusula IN segura usando marcadores de posición

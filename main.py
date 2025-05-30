@@ -498,49 +498,20 @@ ORDER BY c.fecha, p.legajo;
     return render_template('informeDia.html', fecha=fecha, listaDelDia=listaDelDia)
 
 
+from flask import request, render_template
+from datetime import datetime, date
+
 @app.route('/ausentes', methods=["GET", "POST"])
-def reporteAusentes():
-    # 1. Obtener la fecha desde el formulario o usar la fecha actual
-    if request.method == "POST":
-        fecha_str = request.form.get("fecha")
-    else:
-        fecha_str = None
-
-    if fecha_str:
-        fecha_base = datetime.strptime(fecha_str, "%Y-%m-%d").date()
-    else:
-        fecha_base = datetime.now().date()
-
-    # 2. Obtener datos desde la base
-    personas = DataBaseManager.obtenerPersonasBSAS()
-    
-    fichadas = DataBaseManager.obtenerFichadas()
-    
-
-    listaDelDia = []
-
-    for p in personas:
-        area = p[7]
-        legajo = p[1]
-        apellidoNombre = f"{p[3]} {p[2]}"
-        fecha_actual_dt = datetime.combine(fecha_base, datetime.min.time())
-
-        
-        horaInicioFichada = FichadaService.traerPrimeraHoraFichadaDelDia(legajo, fecha_actual_dt, fichadas)
-        
-        horaFinFichada = FichadaService.traerUltimaHoraFichadaDelDia(legajo, fecha_actual_dt, fichadas)
-
-        relacion = p[11]
-        if horaInicioFichada == None and horaFinFichada == None:
-            observaciones = "Ausente"
-        
-            registro = [fecha_base, area, legajo, apellidoNombre,observaciones,relacion]
-            listaDelDia.append(registro)
+def reporte_ausentes():
+    # Obtener la fecha desde el formulario o usar la fecha actual
+    fecha_str = request.form.get("fecha") if request.method == "POST" else None
+    fecha_base = datetime.strptime(fecha_str, "%Y-%m-%d").date() if fecha_str else date.today()
 
     try:
+        lista_del_dia = obtener_ausentes_del_dia(fecha_base)
         return render_template(
             'ausentes.html',
-            listaDelDia=listaDelDia,
+            listaDelDia=lista_del_dia,
             fecha=fecha_base.isoformat()
         )
     except Exception as e:
@@ -548,6 +519,37 @@ def reporteAusentes():
         return "Error al conectar con la base de datos"
     finally:
         print("Informe diario ejecutado")
+
+
+def obtener_ausentes_del_dia(fecha_base):
+    conn = DataBaseInitializer.get_db_connection()
+    cursor = conn.cursor()
+
+    query = """SELECT 
+    DATE(?) AS fecha,
+    p.sector AS area,
+    p.legajo,
+    p.apellido || ' ' || p.nombre AS apellidoNombre,
+    'Ausente' AS observaciones,
+    p.relacion
+FROM personas p
+WHERE p.legajo <= 4000
+  AND p.sector != 'Fuerza de ventas'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM fichadas f
+      WHERE f.legajo = p.legajo
+        AND DATE(f.fechaHora) = DATE(?)
+  )
+
+    """
+
+    cursor.execute(query, (fecha_base, fecha_base))
+    resultados = cursor.fetchall()
+    conn.close()
+    return resultados
+
+
 
 
 @app.route('/scanner')
@@ -786,7 +788,7 @@ def menu():
     #PersonaService.importar_personas_desde_api() #Se utiliza para traer los datos de Internos
     #HoraBaseService.insertarHorasEstimadas()
     #HoraBaseService.cargar_horarios_desde_excel()
-    #PersonaService.delete_personas_by_legajos([2183,2184,2330,2410,2570,2589,2590,2592,2845,2869])#para eliminar legajos de Personal BD
+    #PersonaService.delete_personas_by_legajos([2428,2183,2184,2330,2410,2570,2589,2590,2592,2845,2869])#para eliminar legajos de Personal BD
     #Utility.actualizar_personas_desde_excel()
     #Utility.actualizarCategorias()
     return render_template("index.html")
