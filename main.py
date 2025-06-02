@@ -622,7 +622,7 @@ def ver_horarios():
 
 @app.route("/editarHorario/<int:id>", methods=["GET", "POST"])
 def editar_horario(id):
-    conexion = DataBaseInitializer.get_db_connection("horariosBase")
+    conexion = DataBaseInitializer.get_db_connection()
     cursor = conexion.cursor()
 
     if request.method == "POST":
@@ -650,7 +650,7 @@ def editar_horario(id):
 
 @app.route("/api/horarios/<int:legajo>", methods=["GET"])
 def get_horarios_de_legajo(legajo):
-    conexion = DataBaseInitializer.get_db_connection("horariosBase")
+    conexion = DataBaseInitializer.get_db_connection()
     cursor = conexion.cursor()
     cursor.execute("SELECT * FROM horariosBase WHERE legajo = ?", (legajo,))
     rows = cursor.fetchall()
@@ -677,7 +677,7 @@ def get_horarios_de_legajo(legajo):
 @app.route("/api/horario/<int:id>", methods=["POST"])
 def actualizar_horario(id):
     data = request.json
-    conexion = DataBaseInitializer.get_db_connection("horariosBase")
+    conexion = DataBaseInitializer.get_db_connection()
     cursor = conexion.cursor()
 
     cursor.execute("""

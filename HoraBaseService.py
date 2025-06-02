@@ -26,7 +26,7 @@ def traerHoraFinBaseDelDia(legajo, diaActual, horariosBase):
     return ultimaHora
 
 def insertar_horario_base(legajo, dia_inicio, hora_inicio,tipo, dia_fin=None, hora_fin=None):
-    conexion = DataBaseInitializer.get_db_connection("horariosBase")
+    conexion = DataBaseInitializer.get_db_connection()
     cursor = conexion.cursor()
     
     query = """
@@ -39,7 +39,7 @@ def insertar_horario_base(legajo, dia_inicio, hora_inicio,tipo, dia_fin=None, ho
     conexion.close()
 
 def insertarHorasSemanal(legajo,dias,hora_inicio,hora_fin,tipo):
-    conexion = DataBaseInitializer.get_db_connection("horariosBase")
+    conexion = DataBaseInitializer.get_db_connection()
     cursor = conexion.cursor()
 
     for dia in dias:
@@ -52,7 +52,7 @@ def insertarHorasSemanal(legajo,dias,hora_inicio,hora_fin,tipo):
     conexion.close()
 
 def insertarHorasEstimadas():
-    conexion = DataBaseInitializer.get_db_connection("horariosBase")
+    conexion = DataBaseInitializer.get_db_connection()
     cursor = conexion.cursor()
     horarios = DataBaseInitializer.obtener_horarios_estimados()
     
@@ -100,7 +100,7 @@ def cargar_horarios_desde_excel():
 
 
 def obtenerLegajosUnicos():
-    conn = DataBaseInitializer.get_db_connection("horariosBase")
+    conn = DataBaseInitializer.get_db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     
