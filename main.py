@@ -610,15 +610,32 @@ def horarios():
 
 @app.route("/registroHorariosBase")
 def ver_horarios():
-    horarios = DataBaseManager.obtenerHorarios()
-    rows_dicts = [dict(r) for r in horarios]
+    conn = DataBaseInitializer.get_db_connection()
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT 
+    hb.id,
+    p.nombre || ' ' || p.apellido AS nombreApellido,
+    hb.legajo,
+    hb.dia_inicio,
+    hb.hora_inicio,
+    hb.dia_fin,
+    hb.hora_fin,
+    hb.tipo
+FROM horariosBase hb
+JOIN personas p ON hb.legajo = p.legajo
+WHERE hb.legajo <= 4000
+  AND p.sector != 'Fuerza de ventas';
 
-    for row in rows_dicts:
-        legajo = row.get("legajo")  # usa el nombre real de la columna
-        row["nombreApellido"] = PersonaService.obtener_nombre_por_legajo(legajo)
-        print(rows_dicts)
+    """)
+    horarios = cursor.fetchall()
+    conn.close()
+    
+    
+    
 
-    return render_template("registroHorariosBase.html", horarios=rows_dicts)
+    return render_template("registroHorariosBase.html", horarios=horarios)
 
 @app.route("/editarHorario/<int:id>", methods=["GET", "POST"])
 def editar_horario(id):

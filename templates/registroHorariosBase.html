@@ -53,13 +53,13 @@
       </thead>
       <tbody>
         {% for horario in horarios %}
-        <tr>
+        <tr data-search="{{ horario['legajo'] }} {{ horario['nombreApellido'] }} {{ horario['hora_inicio'] }} {{ horario['hora_fin'] }} {{ horario['tipo'] }}">
           <td>{{ horario["legajo"] }}</td>
           <td>{{ horario["nombreApellido"] }}</td>
           <td>
             {% if horario["dia_inicio"] == 1 %} Lunes{% endif %}
             {% if horario["dia_inicio"] == 2 %} Martes{% endif %}
-            {% if horario["dia_inicio"] == 3 %} Miercoles{% endif %}
+            {% if horario["dia_inicio"] == 3 %} Miércoles{% endif %}
             {% if horario["dia_inicio"] == 4 %} Jueves{% endif %}
             {% if horario["dia_inicio"] == 5 %} Viernes{% endif %}
             {% if horario["dia_inicio"] == 6 %} Sábado{% endif %}
@@ -69,7 +69,7 @@
           <td>
             {% if horario["dia_fin"] == 1 %} Lunes{% endif %}
             {% if horario["dia_fin"] == 2 %} Martes{% endif %}
-            {% if horario["dia_fin"] == 3 %} Miercoles{% endif %}
+            {% if horario["dia_fin"] == 3 %} Miércoles{% endif %}
             {% if horario["dia_fin"] == 4 %} Jueves{% endif %}
             {% if horario["dia_fin"] == 5 %} Viernes{% endif %}
             {% if horario["dia_fin"] == 6 %} Sábado{% endif %}
@@ -94,10 +94,15 @@
       let timeoutId;
       return function (...args) {
         clearTimeout(timeoutId);
-        spinner.style.display = 'inline-block'; // mostrar spinner
+        if (input.value.trim() === '') {
+          spinner.style.display = 'none';
+          func.apply(this, args);
+          return;
+        }
+        spinner.style.display = 'inline-block';
         timeoutId = setTimeout(() => {
           func.apply(this, args);
-          spinner.style.display = 'none'; // ocultar spinner después del filtrado
+          spinner.style.display = 'none';
         }, delay);
       };
     }
@@ -106,14 +111,8 @@
       const filterValue = input.value.toLowerCase();
       const rows = document.querySelectorAll('#tabla tbody tr');
       rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        let match = false;
-        cells.forEach(cell => {
-          if (cell.innerText.toLowerCase().includes(filterValue)) {
-            match = true;
-          }
-        });
-        row.style.display = match ? '' : 'none';
+        const content = row.dataset.search.toLowerCase();
+        row.style.display = content.includes(filterValue) ? '' : 'none';
       });
     }
 

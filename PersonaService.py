@@ -42,14 +42,6 @@ def importar_personas_desde_api():
     except Exception as e:
         print(f"Error al importar personas: {e}")
     
-def get_all():
-    conn = DataBaseInitializer.get_db_connection("personas")
-    try:
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM personas")
-        return cursor.fetchall()
-    finally:
-        conn.close()
 
 def delete_personas_by_legajos(legajos):
     if not legajos:
@@ -122,7 +114,7 @@ def obtener_todos_los_legajos():
 
 def obtener_nombre_por_legajo(legajo):
     try:
-        conn = DataBaseInitializer.get_db_connection("personas")
+        conn = DataBaseInitializer.get_db_connection()
         cursor = conn.cursor()
 
         cursor.execute("""
