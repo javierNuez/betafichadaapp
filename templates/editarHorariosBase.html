@@ -2,10 +2,10 @@
 <html lang="es">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Editar Horarios x legajo</title>
-    <link rel="stylesheet" href="../static/css/bootstrap.css">
+    <link rel="stylesheet" href="../static/css/bootstrap.css" />
     <style>
         table,
         th,
@@ -29,7 +29,7 @@
             <h4>Editar todos los horarios del legajo</h4>
             <div class="row mb-2">
                 <div class="col-md-4">
-                    <input type="number" id="legajoInput" class="form-control" placeholder="Ingrese legajo">
+                    <input type="number" id="legajoInput" class="form-control" placeholder="Ingrese legajo" />
                 </div>
                 <div class="col-md-2">
                     <button class="btn btn-primary" onclick="buscarHorarios()">Buscar</button>
@@ -52,6 +52,13 @@
                 7: "Domingo"
             };
 
+            function formatDateTimeLocal(dateTimeString) {
+    if (!dateTimeString) return '';
+    // De "2025-06-02T14:30:00" → "2025-06-02 14:30"
+    return dateTimeString.replace('T', ' ').substring(0, 16);
+}
+
+
             async function buscarHorarios() {
                 const legajo = document.getElementById("legajoInput").value;
                 const response = await fetch(`/api/horarios/${legajo}`);
@@ -71,20 +78,27 @@
                     const grupo = document.createElement("div");
                     grupo.className = "row mb-2";
                     grupo.innerHTML = `
-                <input type="hidden" name="id" value="${h.id}">
-                <div class="col-md-2">
-                    <strong>${dias[h.dia_inicio]}</strong>
-                </div>
-                <div class="col-md-2">
-                    <input type="time" name="hora_inicio_${h.id}" value="${h.hora_inicio}" class="form-control">
-                </div>
-                <div class="col-md-2">
-                    <input type="time" name="hora_fin_${h.id}" value="${h.hora_fin}" class="form-control">
-                </div>
-                <div class="col-md-2">
-                    <input type="text" name="tipo_${h.id}" value="${h.tipo}" class="form-control">
-                </div>
-            `;
+                    <input type="hidden" name="id" value="${h.id}">
+                    <div class="flex-shrink-0" style="width: 100px;">
+                        <strong>${dias[h.dia_inicio]}</strong>
+                        </div>
+                        <div class="flex-shrink-0" style="width: 120px;">
+                            <input type="time" name="hora_inicio_${h.id}" value="${h.hora_inicio}" class="form-control" />
+                        </div>
+                        <div class="flex-shrink-0" style="width: 120px;">
+                            <input type="time" name="hora_fin_${h.id}" value="${h.hora_fin}" class="form-control" />
+                        </div>
+                        <div class="flex-shrink-0" style="width: 120px;">
+                            <input type="text" name="tipo_${h.id}" value="${h.tipo}" class="form-control" />
+                            </div>
+                            <div class="flex-shrink-0" style="width: 220px;">
+                            <input type="datetime-local" name="fecha_hora_desde_${h.id}" value="${formatDateTimeLocal(h.fecha_hora_desde)}" class="form-control" placeholder="Fecha y Hora Desde" />
+                        </div>
+                        <div class="flex-shrink-0" style="width: 220px;">
+                        <input type="datetime-local" name="fecha_hora_hasta_${h.id}" value="${formatDateTimeLocal(h.fecha_hora_hasta)}" class="form-control" placeholder="Fecha y Hora Hasta" />
+                        </div>
+                    `;
+
                     contenedor.appendChild(grupo);
                 });
 
@@ -101,7 +115,9 @@
                     const data = {
                         hora_inicio: form.querySelector(`[name="hora_inicio_${id}"]`).value,
                         hora_fin: form.querySelector(`[name="hora_fin_${id}"]`).value,
-                        tipo: form.querySelector(`[name="tipo_${id}"]`).value
+                        tipo: form.querySelector(`[name="tipo_${id}"]`).value,
+                        fecha_hora_desde: form.querySelector(`[name="fecha_hora_desde_${id}"]`).value,
+                        fecha_hora_hasta: form.querySelector(`[name="fecha_hora_hasta_${id}"]`).value,
                     };
 
                     await fetch(`/api/horario/${id}`, {
@@ -118,3 +134,5 @@
 
     </div>
 </body>
+
+</html>

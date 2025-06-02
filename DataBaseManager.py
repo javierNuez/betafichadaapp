@@ -60,7 +60,30 @@ def obtenerHorarios():
     return horarios
 
 
+def obtenerHorarios(fecha):
+    """
+    Retorna los horarios vigentes en la fecha dada.
+    La fecha debe estar en formato 'YYYY-MM-DD'.
+    """
+    conn = DataBaseInitializer.get_db_connection()
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
 
+    # Convertimos la fecha a un datetime completo para comparación segura
+    fecha_inicio = fecha + " 00:00"
+    fecha_fin = fecha + " 23:59"
+
+    cursor.execute("""
+        SELECT * FROM horariosBase
+        WHERE datetime(fecha_hora_desde) <= datetime(?)
+          AND (fecha_hora_hasta IS NULL OR datetime(fecha_hora_hasta) >= datetime(?))
+        ORDER BY dia_inicio
+    """, (fecha_fin, fecha_inicio))
+
+    horarios = cursor.fetchall()
+    conn.close()
+
+    return horarios
 
 
 

@@ -1,13 +1,25 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Registro de Horarios</title>
-    <link rel="stylesheet" href="../static/css/bootstrap.css">
+    <link rel="stylesheet" href="../static/css/bootstrap.css" />
 </head>
 <body>
     {% include 'nav.html' %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="container mt-3">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
     <div class="container mt-5">
         <h2>Registro de horario rotativo</h2>
         <form method="POST">
@@ -18,7 +30,7 @@
                     {% for legajo in legajos %}
                       <option value="{{ legajo }}">{{ legajo }}</option>
                     {% endfor %}
-                  </select>
+                </select>
             </div>
             <div class="mb-3">
                 <label class="form-label">Día de Inicio</label>
@@ -34,12 +46,11 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">Hora de Inicio</label>
-                <input type="time" name="hora_inicio" class="form-control" required>
+                <input type="time" name="hora_inicio" class="form-control" required />
             </div>
             <div class="mb-3">
                 <label class="form-label">Día de Fin (opcional)</label>
                 <select id="diaFin" name="dia_fin" class="form-control">
-                    <option value="">Mismo Día</option>
                     <option value="1">Lunes</option>
                     <option value="2">Martes</option>
                     <option value="3">Miércoles</option>
@@ -51,12 +62,28 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">Hora de Fin (opcional)</label>
-                <input type="time" name="hora_fin" class="form-control">
+                <input type="time" name="hora_fin" class="form-control" />
             </div>
+
+            <!-- NUEVOS CAMPOS para fechas de validez -->
+            <div class="mb-3">
+                <label class="form-label">Fecha de Validez Desde</label>
+                <input type="date" name="fecha_hora_desde" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Fecha de Validez Hasta</label>
+                <input type="date" name="fecha_hora_hasta" class="form-control" required />
+            </div>
+
             <button type="submit" class="btn btn-primary">Guardar Horario</button>
         </form>
+
+        <!-- Mensaje de resultado -->
+        {% if mensaje %}
+        <div class="alert {% if exito %}alert-success{% else %}alert-danger{% endif %} mt-3" role="alert">
+            {{ mensaje }}
+        </div>
+        {% endif %}
     </div>
-    
-    
 </body>
 </html>

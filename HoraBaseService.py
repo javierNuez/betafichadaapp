@@ -25,31 +25,121 @@ def traerHoraFinBaseDelDia(legajo, diaActual, horariosBase):
             ultimaHora = h[5]
     return ultimaHora
 
-def insertar_horario_base(legajo, dia_inicio, hora_inicio,tipo, dia_fin=None, hora_fin=None):
+def insertar_horario_base(legajo, dia_inicio, hora_inicio, tipo, dia_fin=None, hora_fin=None, fecha_hora_desde=None, fecha_hora_hasta=None):
     conexion = DataBaseInitializer.get_db_connection()
     cursor = conexion.cursor()
-    
+
+    # Validación de conflicto similar a la anterior
+    cursor.execute("""
+        SELECT 1 FROM horariosbase
+        WHERE legajo = ?
+        AND dia_inicio = ?
+        AND (
+            (fecha_hora_desde <= ? AND fecha_hora_hasta >= ?)
+            OR
+            (fecha_hora_desde <= ? AND fecha_hora_hasta >= ?)
+            OR
+            (fecha_hora_desde BETWEEN ? AND ?)
+            OR
+            (fecha_hora_hasta BETWEEN ? AND ?)
+        )
+        AND (
+            (hora_inicio < ? AND hora_fin > ?)
+        )
+        LIMIT 1
+    """, (
+        legajo,
+        dia_inicio,
+        fecha_hora_hasta, fecha_hora_desde,
+        fecha_hora_desde, fecha_hora_hasta,
+        fecha_hora_desde, fecha_hora_hasta,
+        fecha_hora_desde, fecha_hora_hasta,
+        hora_fin, hora_inicio
+    ))
+
+    if cursor.fetchone() is not None:
+        conexion.close()
+        return {
+            "success": False,
+            "message": "No se pudo agregar el horario porque tiene conflicto con un registro vigente."
+        }
+
+    # Si no hay conflicto, inserto
     query = """
-    INSERT INTO horariosbase (legajo, dia_inicio, hora_inicio, dia_fin, hora_fin, tipo)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO horariosbase (legajo, dia_inicio, hora_inicio, dia_fin, hora_fin, tipo, fecha_hora_desde, fecha_hora_hasta)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     """
-    
-    cursor.execute(query, (legajo, dia_inicio, hora_inicio, dia_fin, hora_fin, tipo))
+    cursor.execute(query, (legajo, dia_inicio, hora_inicio, dia_fin, hora_fin, tipo, fecha_hora_desde, fecha_hora_hasta))
     conexion.commit()
     conexion.close()
 
-def insertarHorasSemanal(legajo,dias,hora_inicio,hora_fin,tipo):
+    return {
+        "success": True,
+        "message": "Horario agregado correctamente."
+    }
+
+
+def insertarHorasSemanal(legajo, dias, hora_inicio, hora_fin, tipo, fecha_hora_desde, fecha_hora_hasta):
     conexion = DataBaseInitializer.get_db_connection()
     cursor = conexion.cursor()
 
+    # Primero, verifico si existe algún registro con validez superpuesta
+    # Esto implica que:
+    # - el rango [fecha_hora_desde, fecha_hora_hasta] se solapa con algún registro existente
+    # - y que el día y horario también se solape.
+
+    # Vamos a consultar si existe algún registro que coincida en el legajo, que se superponga en fecha y horario
+
+    # Para cada día que queremos insertar, verificamos:
     for dia in dias:
         cursor.execute("""
-            INSERT INTO horariosBase (legajo, dia_inicio, hora_inicio, dia_fin, hora_fin, tipo)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (legajo, dia, hora_inicio, dia, hora_fin, tipo))
+            SELECT 1 FROM horariosBase
+            WHERE legajo = ?
+            AND dia_inicio = ?
+            AND (
+                (fecha_hora_desde <= ? AND fecha_hora_hasta >= ?)  -- nuevo rango dentro del existente
+                OR
+                (fecha_hora_desde <= ? AND fecha_hora_hasta >= ?)  -- existente dentro del nuevo rango
+                OR
+                (fecha_hora_desde BETWEEN ? AND ?)                 -- comienza dentro del nuevo rango
+                OR
+                (fecha_hora_hasta BETWEEN ? AND ?)                 -- termina dentro del nuevo rango
+            )
+            AND (
+                (hora_inicio < ? AND hora_fin > ?)  -- se superpone horario
+            )
+            LIMIT 1
+        """, (
+            legajo,
+            dia,
+            fecha_hora_hasta, fecha_hora_desde,
+            fecha_hora_desde, fecha_hora_hasta,
+            fecha_hora_desde, fecha_hora_hasta,
+            fecha_hora_desde, fecha_hora_hasta,
+            hora_fin, hora_inicio
+        ))
+
+        if cursor.fetchone() is not None:
+            conexion.close()
+            return {
+                "success": False,
+                "message": "No se pudo agregar el grupo de horarios porque algún día tiene conflicto."
+            }
+
+    # Si no hay conflicto, inserto todos los días:
+    for dia in dias:
+        cursor.execute("""
+            INSERT INTO horariosBase (legajo, dia_inicio, hora_inicio, dia_fin, hora_fin, tipo, fecha_hora_desde, fecha_hora_hasta)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (legajo, dia, hora_inicio, dia, hora_fin, tipo, fecha_hora_desde, fecha_hora_hasta))
 
     conexion.commit()
     conexion.close()
+    return {
+        "success": True,
+        "message": "Grupo de horarios agregado exitosamente."
+    }
+
 
 def insertarHorasEstimadas():
     conexion = DataBaseInitializer.get_db_connection()

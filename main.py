@@ -403,7 +403,10 @@ def informe_diario():
         ABS(strftime('%s', time(f.fechaHora)) - strftime('%s', '1970-01-01 ' || hb.hora_fin)) AS diff_fin
     FROM fichadas f
     JOIN personas p ON p.legajo = f.legajo
-    LEFT JOIN horariosBase hb ON p.legajo = hb.legajo
+    LEFT JOIN horariosBase hb 
+        ON p.legajo = hb.legajo
+        AND datetime(f.fechaHora) >= datetime(hb.fecha_hora_desde)
+        AND datetime(f.fechaHora) <= datetime(IFNULL(hb.fecha_hora_hasta, f.fechaHora))
     WHERE p.sector != 'Fuerza de ventas' 
       AND p.legajo < 4000
       AND DATE(f.fechaHora) = ?
@@ -444,14 +447,13 @@ SELECT
     c.salida,
 
     CASE 
-    WHEN c.entrada IS NOT NULL AND c.salida IS NOT NULL AND c.entrada = c.salida THEN 'Revisar (única fichada, aún en la empresa)'
-    WHEN c.salida < c.hora_fin THEN 'Ret.Anticipado'
-    WHEN c.entrada IS NOT NULL AND c.salida IS NULL THEN 'Dentro de la empresa'
-    WHEN c.entrada IS NULL AND c.salida IS NOT NULL THEN 'Revisar'
-    WHEN c.entrada > c.hora_inicio THEN 'Tarde'
-    ELSE '-'
-END AS observaciones,
-
+        WHEN c.entrada IS NOT NULL AND c.salida IS NOT NULL AND c.entrada = c.salida THEN 'Revisar (única fichada, aún en la empresa)'
+        WHEN c.salida < c.hora_fin THEN 'Ret.Anticipado'
+        WHEN c.entrada IS NOT NULL AND c.salida IS NULL THEN 'Dentro de la empresa'
+        WHEN c.entrada IS NULL AND c.salida IS NOT NULL THEN 'Revisar'
+        WHEN c.entrada > c.hora_inicio THEN 'Tarde'
+        ELSE '-'
+    END AS observaciones,
 
     CASE 
         WHEN c.entrada > c.hora_inicio THEN 
@@ -463,15 +465,13 @@ END AS observaciones,
     END AS llegada_tarde,
 
     CASE 
-    WHEN c.salida > c.hora_fin THEN 
-        printf('%02d:%02d', 
-            (strftime('%s', c.salida) - strftime('%s', c.hora_fin)) / 3600,
-            ((strftime('%s', c.salida) - strftime('%s', c.hora_fin)) % 3600) / 60
-        )
-    ELSE '-' 
-END AS retiro_despues_hora,
-
-
+        WHEN c.salida > c.hora_fin THEN 
+            printf('%02d:%02d', 
+                (strftime('%s', c.salida) - strftime('%s', c.hora_fin)) / 3600,
+                ((strftime('%s', c.salida) - strftime('%s', c.hora_fin)) % 3600) / 60
+            )
+        ELSE '-' 
+    END AS retiro_despues_hora,
 
     CASE 
         WHEN c.entrada IS NOT NULL AND c.salida IS NOT NULL THEN 
@@ -483,9 +483,9 @@ END AS retiro_despues_hora,
 
 FROM clasificadas c
 JOIN personas p ON p.legajo = c.legajo
-WHERE p.sector != 'Fuerza de ventas' AND p.legajo < 4000
+WHERE p.sector != 'Fuerza de ventas' 
+  AND p.legajo < 4000
 ORDER BY c.fecha, p.legajo;
-
 
 '''
 
@@ -581,12 +581,22 @@ def agregar_horarios():
         dias = request.form.getlist("dias")  # Lista con los días seleccionados (1 al 7)
         hora_inicio = request.form["hora_inicio"]
         hora_fin = request.form["hora_fin"] if request.form["hora_fin"] else None  # Puede ser NULL
+        fecha_hora_desde = request.form["fecha_hora_desde"].replace("T", " ")
+        fecha_hora_hasta = request.form["fecha_hora_hasta"].replace("T", " ")
+        
 
-        HoraBaseService.insertarHorasSemanal(legajo,dias,hora_inicio,hora_fin,tipo)
-
+        resultado = HoraBaseService.insertarHorasSemanal(legajo,dias,hora_inicio,hora_fin,tipo,fecha_hora_desde,fecha_hora_hasta)
+        if resultado["success"]:
+            flash(resultado["message"], "success")
+            return redirect(url_for("horarios"))  # Evita resubmisión al refrescar
+        else:
+            flash(resultado["message"], "danger")
+        
         return redirect("/registroHorariosBase")
 
     return render_template("add_horarios_base_semanal.html", legajos = legajos)
+
+from flask import flash, redirect, url_for
 
 @app.route("/add_horarios_base", methods=["GET", "POST"])
 def horarios():
@@ -598,15 +608,39 @@ def horarios():
         hora_inicio = request.form["hora_inicio"]
         dia_fin = request.form.get("dia_fin", None)
         hora_fin = request.form.get("hora_fin", None)
+        fecha_hora_desde = request.form.get("fecha_hora_desde", None)
+        fecha_hora_hasta = request.form.get("fecha_hora_hasta", None)
 
         if not dia_fin:
             dia_fin = None
         if not hora_fin:
             hora_fin = None
 
-        HoraBaseService.insertar_horario_base(legajo, dia_inicio, hora_inicio, tipo, dia_fin, hora_fin)
+        resultado = HoraBaseService.insertar_horario_base(
+            legajo, dia_inicio, hora_inicio, tipo, dia_fin, hora_fin, fecha_hora_desde, fecha_hora_hasta
+        )
 
-    return render_template("add_horario_base.html", legajos = legajos)
+        if resultado["success"]:
+            flash(resultado["message"], "success")
+            return redirect(url_for("horarios"))  # Evita resubmisión al refrescar
+        else:
+            flash(resultado["message"], "danger")
+
+    return render_template("add_horario_base.html", legajos=legajos)
+
+
+def es_vigente(horario):
+    # fecha_hora_desde y fecha_hora_hasta vienen como string, convertir a datetime
+    formato = "%Y-%m-%d %H:%M:%S"
+    ahora = datetime.now()
+
+    try:
+        desde = datetime.strptime(horario["fecha_hora_desde"], formato)
+        hasta = datetime.strptime(horario["fecha_hora_hasta"], formato)
+    except Exception as e:
+        return False  # En caso de error, no marcar vigente
+
+    return desde <= ahora <= hasta
 
 @app.route("/registroHorariosBase")
 def ver_horarios():
@@ -615,27 +649,38 @@ def ver_horarios():
     cursor = conn.cursor()
     cursor.execute("""
     SELECT 
-    hb.id,
-    p.nombre || ' ' || p.apellido AS nombreApellido,
-    hb.legajo,
-    hb.dia_inicio,
-    hb.hora_inicio,
-    hb.dia_fin,
-    hb.hora_fin,
-    hb.tipo
-FROM horariosBase hb
-JOIN personas p ON hb.legajo = p.legajo
-WHERE hb.legajo <= 4000
-  AND p.sector != 'Fuerza de ventas';
-
+      hb.id,
+      p.nombre || ' ' || p.apellido AS nombreApellido,
+      hb.legajo,
+      hb.dia_inicio,
+      hb.hora_inicio,
+      hb.dia_fin,
+      hb.hora_fin,
+      hb.tipo,
+      hb.fecha_hora_desde,
+      hb.fecha_hora_hasta,
+      CASE 
+        WHEN datetime('now','localtime') BETWEEN hb.fecha_hora_desde AND hb.fecha_hora_hasta THEN 1
+        ELSE 0
+      END AS vigente
+    FROM horariosBase hb
+    JOIN personas p ON hb.legajo = p.legajo
+    WHERE hb.legajo <= 4000
+      AND p.sector != 'Fuerza de ventas'
+    ORDER BY hb.legajo, hb.fecha_hora_hasta DESC;
     """)
-    horarios = cursor.fetchall()
-    conn.close()
-    
-    
-    
 
+    rows = cursor.fetchall()
+    horarios = []
+
+    for row in rows:
+        horario = dict(row)
+        # Convertimos vigente a booleano para más claridad en el template
+        horario["vigente"] = bool(horario["vigente"])
+        horarios.append(horario)
+    conn.close()
     return render_template("registroHorariosBase.html", horarios=horarios)
+
 
 @app.route("/editarHorario/<int:id>", methods=["GET", "POST"])
 def editar_horario(id):
@@ -682,7 +727,9 @@ def get_horarios_de_legajo(legajo):
             "hora_inicio": row[3],
             "dia_fin": row[4],
             "hora_fin": row[5],
-            "tipo": row[6]
+            "tipo": row[6],
+            "fecha_hora_desde": row[7],
+            "fecha_hora_hasta": row[8]
         })
 
     if not horarios:
@@ -697,17 +744,28 @@ def actualizar_horario(id):
     conexion = DataBaseInitializer.get_db_connection()
     cursor = conexion.cursor()
 
+    # Convertir T a espacio
+    fecha_desde = data["fecha_hora_desde"].replace("T", " ") if data["fecha_hora_desde"] else None
+    fecha_hasta = data["fecha_hora_hasta"].replace("T", " ") if data["fecha_hora_hasta"] else None
+
     cursor.execute("""
         UPDATE horariosBase 
-        SET hora_inicio=?, hora_fin=?, tipo=?
+        SET hora_inicio=?, hora_fin=?, tipo=?, fecha_hora_desde=?, fecha_hora_hasta=?
         WHERE id=?
     """, (
-        data["hora_inicio"], data["hora_fin"], data["tipo"], id
+        data["hora_inicio"],
+        data["hora_fin"],
+        data["tipo"],
+        fecha_desde,
+        fecha_hasta,
+        id
     ))
 
     conexion.commit()
     conexion.close()
+    print(data["hora_inicio"], data["hora_fin"], data["tipo"], fecha_desde, fecha_hasta, id)
     return jsonify({"success": True})
+
 
 
 def obtener_legajos():
@@ -808,7 +866,7 @@ def menu():
     #PersonaService.delete_personas_by_legajos([2428,2183,2184,2330,2410,2570,2589,2590,2592,2845,2869])#para eliminar legajos de Personal BD
     #Utility.actualizar_personas_desde_excel()
     #Utility.actualizarCategorias()
-    Utility.agregar_campos_caducidad()
+    #Utility.agregar_campos_caducidad()
     return render_template("index.html")
 
 @app.route('/informe_llegadas')
@@ -837,7 +895,7 @@ def llegadas_tardes_hoy():
     registros = []
     # Convertimos la lista de listas en un diccionario
     legajosConRelacion = {legajo: relacion for legajo, relacion in PersonaService.obtenerLegajoRelacion()}
-    horarios = DataBaseManager.obtenerHorarios()
+    horarios = DataBaseManager.obtenerHorarios(fecha)
     fichadasDia = DataBaseManager.obtenerFichadasPorFechaDia(fecha)
     primeras_fichadas = {}
 
@@ -869,38 +927,79 @@ def llegadas_tardes_hoy():
     return render_template('llegadas_tarde_hoy.html', registros=registros,fecha = fecha )
 
 
+def parse_fecha_hora(fechaHora_str):
+    try:
+        return datetime.strptime(fechaHora_str, "%Y-%m-%d %H:%M:%S.%f")
+    except ValueError:
+        return datetime.strptime(fechaHora_str, "%Y-%m-%d %H:%M:%S")
 
-    
 
-    
+def formatear_minutos(minutos):
+    horas = minutos // 60
+    mins = minutos % 60
+    if horas > 0:
+        return f"{horas}h {mins}min"
+    return f"{mins}min"
 
 @app.route('/llegadas_tarde', methods=['GET'])
 def llegadas_tarde():
     try:
-        def formatear_minutos(minutos):
-            horas = minutos // 60
-            mins = minutos % 60
-            if horas > 0:
-                return f"{horas}h {mins}min"
-            return f"{mins}min"
-
-        # Obtener parámetros
-        try:
-            legajo = int(request.args.get('legajo'))
-        except:
-            legajo = 0
-        
-        tolerancia = int(request.args.get('tolerancia'))
-        tolerancia += 1
+        # Obtener parámetros desde query string
+        legajo = int(request.args.get('legajo', 0))
+        tolerancia = int(request.args.get('tolerancia', 0)) + 1
         fecha_inicio = request.args.get('fecha_inicio')
         fecha_fin = request.args.get('fecha_fin')
 
-        print("Parámetros recibidos:", tolerancia, fecha_inicio, fecha_fin)
+        if not fecha_inicio or not fecha_fin:
+            return jsonify({"error": "Faltan fechas inicio o fin"}), 400
 
-        fi = datetime.strptime(fecha_inicio, "%Y-%m-%d") if isinstance(fecha_inicio, str) else fecha_inicio
-        ff = datetime.strptime(fecha_fin, "%Y-%m-%d") if isinstance(fecha_fin, str) else fecha_fin
+        fi = datetime.strptime(fecha_inicio, "%Y-%m-%d")
+        ff = datetime.strptime(fecha_fin, "%Y-%m-%d")
 
-        datos = InformesService.obtener_datos_para_informe(legajo, fi.date(), ff.date())
+        conn = DataBaseInitializer.get_db_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        # 1) Obtener datos de persona
+        cursor.execute("SELECT nombre, apellido FROM personas WHERE legajo = ?", (legajo,))
+        persona = cursor.fetchone()
+        if persona is None:
+            return jsonify({"error": "Legajo no encontrado"}), 404
+
+        # 2) Obtener novedades para el legajo
+        cursor.execute("""
+            SELECT fecha_inicio, fecha_fin
+            FROM novedades
+            WHERE legajo = ?
+        """, (legajo,))
+        novedades = cursor.fetchall()
+
+        # 3) Obtener horarios vigentes dentro del rango y para cada día de la semana
+        cursor.execute("""
+            SELECT dia_inicio, hora_inicio, fecha_hora_desde, fecha_hora_hasta
+            FROM horariosBase
+            WHERE legajo = ?
+            AND fecha_hora_desde <= ?
+            AND fecha_hora_hasta >= ?
+        """, (legajo, fecha_fin, fecha_inicio))
+        horarios = cursor.fetchall()
+
+        # 4) Obtener fichadas en rango para el legajo
+        cursor.execute("""
+            SELECT fechaHora
+            FROM fichadas
+            WHERE legajo = ?
+            AND fechaHora BETWEEN ? AND ?
+        """, (legajo, fecha_inicio + " 00:00:00", fecha_fin + " 23:59:59"))
+        fichadas = cursor.fetchall()
+
+        conn.close()
+
+        # Convertir novedades y horarios a listas de dict para fácil manejo
+        novedades_list = [dict(n) for n in novedades]
+        horarios_list = [dict(h) for h in horarios]
+        fichadas_list = [dict(f) for f in fichadas]
+
         llegadas_tarde = []
         total_minutos_demorados = 0
 
@@ -910,10 +1009,12 @@ def llegadas_tarde():
             fecha_str = dia.strftime("%Y-%m-%d")
             dia_semana = dia.isoweekday()
 
-            if any(n["fecha_inicio"] <= fecha_str <= n["fecha_fin"] for n in datos["novedades"]):
+            # Saltear si hay novedad activa para ese día
+            if any(n["fecha_inicio"] <= fecha_str <= n["fecha_fin"] for n in novedades_list):
                 continue
 
-            horarios_del_dia = [h for h in datos["horarios"] if h["dia_inicio"] == dia_semana]
+            # Filtrar horarios para el día de la semana
+            horarios_del_dia = [h for h in horarios_list if h["dia_inicio"] == dia_semana]
             if not horarios_del_dia:
                 continue
 
@@ -921,7 +1022,8 @@ def llegadas_tarde():
             hora_esperada_dt = datetime.strptime(f"{fecha_str} {hora_esperada_str}", "%Y-%m-%d %H:%M")
             hora_tolerada_dt = hora_esperada_dt + timedelta(minutes=tolerancia)
 
-            fichadas_del_dia = [f for f in datos["fichadas"] if f["fechaHora"].startswith(fecha_str)]
+            # Filtrar fichadas de ese día
+            fichadas_del_dia = [f for f in fichadas_list if f["fechaHora"].startswith(fecha_str)]
             if not fichadas_del_dia:
                 continue
 
@@ -939,7 +1041,7 @@ def llegadas_tarde():
 
         return jsonify({
             "legajo": legajo,
-            "nombre": f'{datos["persona"]["nombre"]} {datos["persona"]["apellido"]}',
+            "nombre": f'{persona["nombre"]} {persona["apellido"]}',
             "cantidad_llegadas_tarde": len(llegadas_tarde),
             "total_minutos_demorados": total_minutos_demorados,
             "total_demorado_formateado": formatear_minutos(total_minutos_demorados),
@@ -949,6 +1051,7 @@ def llegadas_tarde():
     except Exception as e:
         print("Error:", e)
         return jsonify({"error": str(e)}), 400
+
 
 @app.route('/novedad', methods=['GET', 'POST'])
 def novedad():
@@ -1015,12 +1118,16 @@ def obtener_persona_api():
     else:
         return jsonify({'error': 'Persona no encontrada'}), 404
 
+@app.route('/borrarHoras/<int:legajo>')
+def borrar_horarios_por_legajo(legajo):
+    conexion = DataBaseInitializer.get_db_connection()
+    cursor = conexion.cursor()
 
+    cursor.execute("DELETE FROM horariosBase WHERE legajo = ?", (legajo,))
+    conexion.commit()
+    conexion.close()
 
-
-
-from datetime import datetime, timedelta
-from flask import request, redirect, url_for, render_template
+    return jsonify({"success": True, "mensaje": f"Se eliminaron todos los horarios del legajo {legajo}."})
 
 @app.route('/grafico')
 def grafico():
