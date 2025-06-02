@@ -336,3 +336,39 @@ def actualizarCategorias():
 
     conn.commit()
     print("Caracteres 'Liq ' eliminados del campo categoria.")
+
+
+
+def agregar_campos_caducidad():
+    conn = DataBaseInitializer.get_db_connection()
+    cursor = conn.cursor()
+    
+    # Obtener info de las columnas de la tabla
+    cursor.execute("PRAGMA table_info(horariosBase);")
+    columnas = [info[1] for info in cursor.fetchall()]
+    
+    # Agregar fecha_hora_desde si no existe
+    if "fecha_hora_desde" not in columnas:
+        cursor.execute("""
+            ALTER TABLE horariosBase
+            ADD COLUMN fecha_hora_desde TEXT NOT NULL DEFAULT '2000-01-01 00:00:00';
+        """)
+        print("Columna fecha_hora_desde agregada.")
+    else:
+        print("Columna fecha_hora_desde ya existe.")
+    
+    # Agregar fecha_hora_hasta si no existe
+    if "fecha_hora_hasta" not in columnas:
+        cursor.execute("""
+            ALTER TABLE horariosBase
+            ADD COLUMN fecha_hora_hasta TEXT NOT NULL DEFAULT '9999-12-31 23:59:59';
+        """)
+        print("Columna fecha_hora_hasta agregada.")
+    else:
+        print("Columna fecha_hora_hasta ya existe.")
+    
+    conn.commit()
+    conn.close()
+
+# Ejemplo de uso:
+# agregar_campos_caducidad('ruta/a/tu/base_de_datos.sqlite')

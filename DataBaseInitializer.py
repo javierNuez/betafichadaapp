@@ -210,15 +210,19 @@ def create_tables_horariosBase(conn):
         cursor = conn.cursor()
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS horariosBase (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                legajo INTEGER NOT NULL,
-                dia_inicio INTEGER CHECK (dia_inicio BETWEEN 1 AND 7),  -- Día de inicio (1=Lunes, 7=Domingo)
-                hora_inicio TEXT NOT NULL CHECK (hora_inicio LIKE '__:__'),  -- Formato 'HH:MM'
-                dia_fin INTEGER CHECK (dia_fin BETWEEN 1 AND 7),  -- Día de fin (puede ser el mismo u otro)
-                hora_fin TEXT CHECK (hora_fin LIKE '__:__' OR hora_fin IS NULL),  -- Hora fin (puede ser NULL si pasa de medianoche)
-                "tipo" TEXT CHECK (LENGTH(tipo) <= 10),  -- Nueva columna de texto (máx. 10 caracteres)
-                FOREIGN KEY (legajo) REFERENCES personas(legajo) ON DELETE CASCADE
-            )
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            legajo INTEGER NOT NULL,
+            dia_inicio INTEGER CHECK (dia_inicio BETWEEN 1 AND 7),
+            hora_inicio TEXT NOT NULL CHECK (hora_inicio LIKE '__:__'),
+            dia_fin INTEGER CHECK (dia_fin BETWEEN 1 AND 7),
+            hora_fin TEXT CHECK (hora_fin LIKE '__:__' OR hora_fin IS NULL),
+            tipo TEXT CHECK (LENGTH(tipo) <= 10),
+
+            fecha_hora_desde TEXT NOT NULL,
+            fecha_hora_hasta TEXT NOT NULL,
+
+            FOREIGN KEY (legajo) REFERENCES personas(legajo) ON DELETE CASCADE
+            );
         ''')
         print("Tabla 'horariosBase' verificada o creada exitosamente.")
         conn.commit()

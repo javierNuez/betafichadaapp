@@ -808,6 +808,7 @@ def menu():
     #PersonaService.delete_personas_by_legajos([2428,2183,2184,2330,2410,2570,2589,2590,2592,2845,2869])#para eliminar legajos de Personal BD
     #Utility.actualizar_personas_desde_excel()
     #Utility.actualizarCategorias()
+    Utility.agregar_campos_caducidad()
     return render_template("index.html")
 
 @app.route('/informe_llegadas')
