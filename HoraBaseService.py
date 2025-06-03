@@ -1,4 +1,5 @@
 #Traer el horario de ingreso base.    
+from flask import jsonify
 import DataBaseInitializer
 import Utility
 import sqlite3
@@ -203,3 +204,4 @@ def obtenerLegajosUnicos():
     legajos = [fila["legajo"] for fila in filas]
     
     return legajos
+

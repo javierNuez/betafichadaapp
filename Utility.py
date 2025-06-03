@@ -370,5 +370,5 @@ def agregar_campos_caducidad():
     conn.commit()
     conn.close()
 
-# Ejemplo de uso:
-# agregar_campos_caducidad('ruta/a/tu/base_de_datos.sqlite')
+
+
