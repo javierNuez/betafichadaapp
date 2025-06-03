@@ -1,8 +1,8 @@
 Legajo,Nombre,FechaHora
 2733,Silvia Noemi Gonzalez,02/06/2025 04:02
 1863,Rodolfo Julio Iribarne,02/06/2025 04:29
-2050,Teresa del Jesus Correa,02/06/2025 04:49
 2514,Marcela Alejandra Nicastro,02/06/2025 04:49
+2050,Teresa del Jesus Correa,02/06/2025 04:49
 1533,Walter Rene Fernandez,02/06/2025 05:09
 1880,Guillermo Mosteiro,02/06/2025 05:12
 2537,Oscar Eduardo Ojeda,02/06/2025 05:23
@@ -32,13 +32,13 @@ Legajo,Nombre,FechaHora
 2293,Osvaldo Maria Borgetto,02/06/2025 06:43
 1864,Favio Andres Ventittueli,02/06/2025 06:48
 2279,Juan Alberto Ruiz,02/06/2025 06:49
-2731,Claudio Fabian Sosa,02/06/2025 06:52
 2438,Hernan Leonardo Bruno,02/06/2025 06:52
+2731,Claudio Fabian Sosa,02/06/2025 06:52
 1870,Leonardo Marco Ruiz,02/06/2025 06:55
-2144,Tomas Gabriel Pallero,02/06/2025 06:56
 2716,Ivan Jesus Velazco,02/06/2025 06:56
-2582,Pablo Alberto Blanco,02/06/2025 06:56
 2487,Hernan Andres Alberto Diaz,02/06/2025 06:56
+2582,Pablo Alberto Blanco,02/06/2025 06:56
+2144,Tomas Gabriel Pallero,02/06/2025 06:56
 2851,Ing. Marcelo Martin Maciel,02/06/2025 06:58
 2727,Mario Alberto Argañaraz,02/06/2025 06:59
 1564,Gabriel Alejandro Gambetta,02/06/2025 07:01
@@ -62,29 +62,29 @@ Legajo,Nombre,FechaHora
 2859,Justina Ailen Fernandez Aguirre,02/06/2025 07:58
 2270,Wilfredo Bergara,02/06/2025 08:00
 2842,Yanina Elizabeth Pascual,02/06/2025 08:02
+2854,Candela Victoria Mas,02/06/2025 08:03
 2841,Natalia Patricia Yacono,02/06/2025 08:03
 2837,Paula Veronica Nuñez,02/06/2025 08:03
-2854,Candela Victoria Mas,02/06/2025 08:03
 2295,Andrea Hebe Barros,02/06/2025 08:04
 2681,Veronica Pamela Serrano,02/06/2025 08:05
 1442,Fabian Quinteros,02/06/2025 08:06
 1941,Jorge Alberto Contreras,02/06/2025 08:07
-1250,Dra. Maria del Carmen Martinez,02/06/2025 08:07
 2212,Christian Hernan Rienzi,02/06/2025 08:07
+1250,Dra. Maria del Carmen Martinez,02/06/2025 08:07
 2666,Matias Gonzalo Sosa,02/06/2025 08:07
 2844,Vera Mariana Martinez Canda,02/06/2025 08:08
 2780,Ezequiel Alberto Escobar,02/06/2025 08:12
-1296,Sergio Osvaldo Russo,02/06/2025 08:13
 1910,Maria Isabel Mejuto,02/06/2025 08:13
-2314,Pablo Adrian Gonzalez,02/06/2025 08:14
+1296,Sergio Osvaldo Russo,02/06/2025 08:13
 1551,Daniel Hugo Ventura,02/06/2025 08:14
+2314,Pablo Adrian Gonzalez,02/06/2025 08:14
 1784,Karina Edith Martins Rosa,02/06/2025 08:20
 2181,Walter Rolando Borrero,02/06/2025 08:24
+1042,Hector Roberto Vila,02/06/2025 08:31
+1042,Hector Roberto Vila,02/06/2025 08:31
 2554,Ariel Pablo Minervini,02/06/2025 08:31
-1042,Hector Roberto Vila,02/06/2025 08:31
-1042,Hector Roberto Vila,02/06/2025 08:31
-1693,Monica Susana Comeron,02/06/2025 08:33
 2594,Gaston Hector Navarro,02/06/2025 08:33
+1693,Monica Susana Comeron,02/06/2025 08:33
 2338,Carlos Andres Godoy,02/06/2025 08:33
 1826,Juan Martin Minchilli Carrica,02/06/2025 08:35
 1821,Ruben Asta,02/06/2025 08:44
@@ -103,12 +103,12 @@ Legajo,Nombre,FechaHora
 2833,Javier Eduardo Amendolare,02/06/2025 09:08
 2088,Javier Adrian Bravo,02/06/2025 09:09
 2610,Gabriel Alejandro Forgit,02/06/2025 09:10
-2562,Gaston Leonardo Grosso,02/06/2025 09:11
 2199,Paula Valeria Outeiral,02/06/2025 09:11
+2562,Gaston Leonardo Grosso,02/06/2025 09:11
 2553,Maria Jose Faillace,02/06/2025 09:13
 1831,Guillermo Daniel Dettler,02/06/2025 09:16
-2868,Roberto Junior Achikar Esparragoza,02/06/2025 09:17
 2585,Edgardo Roberto Castro,02/06/2025 09:17
+2868,Roberto Junior Achikar Esparragoza,02/06/2025 09:17
 2417,Fernando Salvador Minnucci,02/06/2025 09:19
 2246,Paola Andrea Portnoy,02/06/2025 09:23
 2119,Angel Gabriel Pazos,02/06/2025 09:23
@@ -131,18 +131,187 @@ Legajo,Nombre,FechaHora
 2846,Stella Maris Trinidad Rivarola,02/06/2025 12:25
 2144,Tomas Gabriel Pallero,02/06/2025 12:54
 2582,Pablo Alberto Blanco,02/06/2025 12:54
-2144,Tomas Gabriel Pallero,02/06/2025 12:57
 2582,Pablo Alberto Blanco,02/06/2025 12:57
+2144,Tomas Gabriel Pallero,02/06/2025 12:57
 2688,Gabriel Gustavo Piernas,02/06/2025 13:03
 2688,Gabriel Gustavo Piernas,02/06/2025 13:03
 2568,Carlos Gabriel Casacchia,02/06/2025 13:23
 1786,Carmelo Notaro,02/06/2025 13:25
 2599,Nestor Marcelo Ahumada,02/06/2025 13:41
 2014,Walter Alberto Chavez,02/06/2025 13:50
-2733,Silvia Noemi Gonzalez,02/06/2025 14:01
 2692,Maricel Romina Blandi,02/06/2025 14:01
+2733,Silvia Noemi Gonzalez,02/06/2025 14:01
 2494,Mauro Eloy Maza,02/06/2025 14:03
 890,Felipa Lopez,02/06/2025 14:08
 1821,Ruben Asta,02/06/2025 14:15
 1821,Ruben Asta,02/06/2025 14:21
 2746,Ricardo Isasi,02/06/2025 14:31
+2215,Gabriela Viviana Cadorniga,02/06/2025 14:57
+2139,Alejandro Pablo Bertsos,02/06/2025 15:00
+1786,Carmelo Notaro,02/06/2025 15:00
+2399,Amelia Griselda Perez,02/06/2025 15:00
+2538,Patricia Suarez,02/06/2025 15:00
+2673,Yanina Jazmin Irrazabal,02/06/2025 15:00
+2514,Marcela Alejandra Nicastro,02/06/2025 15:00
+2671,Candido Canio Baldasarre,02/06/2025 15:00
+1079,Daniel Norberto Casal,02/06/2025 15:00
+2580,Oscar Fernandez,02/06/2025 15:01
+1533,Walter Rene Fernandez,02/06/2025 15:01
+2273,Ramon Alfredo Barberia,02/06/2025 15:02
+1682,Maria Adela Perez,02/06/2025 15:02
+2238,Martin Sebastian Coronel,02/06/2025 15:06
+1880,Guillermo Mosteiro,02/06/2025 15:07
+2520,Monica Estela Cabrera,02/06/2025 15:07
+2537,Oscar Eduardo Ojeda,02/06/2025 15:10
+2338,Carlos Andres Godoy,02/06/2025 15:12
+2338,Carlos Andres Godoy,02/06/2025 15:14
+2323,Elsa Lucia Fernandez,02/06/2025 15:14
+2050,Teresa del Jesus Correa,02/06/2025 15:15
+2710,Maria de los Angeles Zurita,02/06/2025 15:18
+1786,Carmelo Notaro,02/06/2025 15:21
+2219,Alberto Espinola,02/06/2025 15:30
+1786,Carmelo Notaro,02/06/2025 15:41
+2825,Jorge Omar Furno,02/06/2025 15:43
+1786,Carmelo Notaro,02/06/2025 15:58
+2293,Osvaldo Maria Borgetto,02/06/2025 16:00
+2386,Andrea Karina Maldonado,02/06/2025 16:00
+2333,Miguel Angel Delgado,02/06/2025 16:01
+2487,Hernan Andres Alberto Diaz,02/06/2025 16:02
+2438,Hernan Leonardo Bruno,02/06/2025 16:02
+2072,Sergio Ricardo Fernandez,02/06/2025 16:02
+2731,Claudio Fabian Sosa,02/06/2025 16:02
+2872,Lautaro Stocco,02/06/2025 16:02
+1870,Leonardo Marco Ruiz,02/06/2025 16:02
+2144,Tomas Gabriel Pallero,02/06/2025 16:03
+2112,Daniel Alvarez,02/06/2025 16:04
+2727,Mario Alberto Argañaraz,02/06/2025 16:05
+1863,Rodolfo Julio Iribarne,02/06/2025 16:05
+2851,Ing. Marcelo Martin Maciel,02/06/2025 16:07
+1786,Carmelo Notaro,02/06/2025 16:07
+2338,Carlos Andres Godoy,02/06/2025 16:07
+2279,Juan Alberto Ruiz,02/06/2025 16:09
+2582,Pablo Alberto Blanco,02/06/2025 16:13
+1564,Gabriel Alejandro Gambetta,02/06/2025 16:16
+2740,Fabian Dario Navarro,02/06/2025 16:33
+922,Berta Rosa Mc.Phillips,02/06/2025 16:37
+2212,Christian Hernan Rienzi,02/06/2025 16:41
+2588,Javier Maximiliano Nuñez,02/06/2025 16:43
+1864,Favio Andres Ventittueli,02/06/2025 16:43
+1786,Carmelo Notaro,02/06/2025 16:47
+1246,Daniel Oscar Catanese,02/06/2025 16:50
+2721,Sebastian Enzo Pappacena,02/06/2025 16:58
+2118,Alejandra Zaffanella,02/06/2025 17:00
+2681,Veronica Pamela Serrano,02/06/2025 17:00
+2314,Pablo Adrian Gonzalez,02/06/2025 17:00
+2842,Yanina Elizabeth Pascual,02/06/2025 17:00
+2250,Analia Veronica Chiappa,02/06/2025 17:01
+2666,Matias Gonzalo Sosa,02/06/2025 17:02
+2859,Justina Ailen Fernandez Aguirre,02/06/2025 17:03
+2264,Marianela Andrea Mielnik,02/06/2025 17:03
+1761,Carlos D. Fernandez Santoro,02/06/2025 17:05
+2150,Walter Fabian Tortosa,02/06/2025 17:06
+2837,Paula Veronica Nuñez,02/06/2025 17:06
+1667,Omar Alfredo Martinez,02/06/2025 17:06
+2270,Wilfredo Bergara,02/06/2025 17:06
+2502,Romina Veronica Albanese,02/06/2025 17:07
+2841,Natalia Patricia Yacono,02/06/2025 17:07
+2780,Ezequiel Alberto Escobar,02/06/2025 17:07
+2844,Vera Mariana Martinez Canda,02/06/2025 17:08
+1442,Fabian Quinteros,02/06/2025 17:08
+1551,Daniel Hugo Ventura,02/06/2025 17:13
+1941,Jorge Alberto Contreras,02/06/2025 17:14
+2295,Andrea Hebe Barros,02/06/2025 17:14
+2854,Candela Victoria Mas,02/06/2025 17:16
+1831,Guillermo Daniel Dettler,02/06/2025 17:21
+2338,Carlos Andres Godoy,02/06/2025 17:25
+1910,Maria Isabel Mejuto,02/06/2025 17:28
+1042,Hector Roberto Vila,02/06/2025 17:29
+1784,Karina Edith Martins Rosa,02/06/2025 17:32
+1231,Alfredo Luis Dominghini,02/06/2025 17:33
+2119,Angel Gabriel Pazos,02/06/2025 17:34
+1826,Juan Martin Minchilli Carrica,02/06/2025 17:35
+1693,Monica Susana Comeron,02/06/2025 17:35
+2338,Carlos Andres Godoy,02/06/2025 17:38
+1296,Sergio Osvaldo Russo,02/06/2025 17:38
+2734,Jeronimo Bilello,02/06/2025 17:39
+2181,Walter Rolando Borrero,02/06/2025 17:40
+2833,Javier Eduardo Amendolare,02/06/2025 17:49
+1638,Maria Martha Gonzalez Segura,02/06/2025 17:59
+2585,Edgardo Roberto Castro,02/06/2025 18:00
+1889,Aldo Mario Marchetto,02/06/2025 18:00
+2417,Fernando Salvador Minnucci,02/06/2025 18:00
+2575,Maria Laura Gomez Martino,02/06/2025 18:00
+765,Gustavo Anibal Villanueva,02/06/2025 18:00
+2199,Paula Valeria Outeiral,02/06/2025 18:01
+1841,Claudio Alejandro Godoy,02/06/2025 18:01
+2554,Ariel Pablo Minervini,02/06/2025 18:03
+2614,Carla Micaela Camean,02/06/2025 18:03
+2642,Rosalina Dos Santos,02/06/2025 18:07
+2664,Elizabeth Verberkt,02/06/2025 18:09
+2610,Gabriel Alejandro Forgit,02/06/2025 18:10
+2688,Gabriel Gustavo Piernas,02/06/2025 18:13
+2843,Celeste Cavallo,02/06/2025 18:17
+2594,Gaston Hector Navarro,02/06/2025 18:17
+2562,Gaston Leonardo Grosso,02/06/2025 18:18
+2868,Roberto Junior Achikar Esparragoza,02/06/2025 18:21
+2617,Walter Adrian Gonzalez,02/06/2025 18:22
+1829,Maricel Eva Tapia,02/06/2025 18:27
+2246,Paola Andrea Portnoy,02/06/2025 18:33
+1821,Ruben Asta,02/06/2025 18:34
+2858,Guillermo Daniel Vidal,02/06/2025 18:39
+2332,Javier Enrique Balentin,02/06/2025 18:51
+2553,Maria Jose Faillace,02/06/2025 19:05
+2088,Javier Adrian Bravo,02/06/2025 19:11
+1619,Omar Daniel Rodeiro,02/06/2025 19:31
+1619,Omar Daniel Rodeiro,02/06/2025 19:36
+2803,Matias Agustin Reyes,02/06/2025 19:49
+1412,Cdora Mercedes Clara Gonzalez,02/06/2025 19:50
+2803,Matias Agustin Reyes,02/06/2025 19:52
+2803,Matias Agustin Reyes,02/06/2025 21:02
+2215,Gabriela Viviana Cadorniga,02/06/2025 21:03
+2014,Walter Alberto Chavez,02/06/2025 22:00
+2568,Carlos Gabriel Casacchia,02/06/2025 22:00
+2599,Nestor Marcelo Ahumada,02/06/2025 22:02
+2494,Mauro Eloy Maza,02/06/2025 22:09
+1863,Rodolfo Julio Iribarne,03/06/2025 04:30
+2050,Teresa del Jesus Correa,03/06/2025 04:51
+2514,Marcela Alejandra Nicastro,03/06/2025 04:51
+1533,Walter Rene Fernandez,03/06/2025 05:07
+1880,Guillermo Mosteiro,03/06/2025 05:16
+2672,Walter Sergio Szwarc,03/06/2025 05:24
+2273,Ramon Alfredo Barberia,03/06/2025 05:25
+2673,Yanina Jazmin Irrazabal,03/06/2025 05:28
+1682,Maria Adela Perez,03/06/2025 05:33
+1079,Daniel Norberto Casal,03/06/2025 05:39
+2323,Elsa Lucia Fernandez,03/06/2025 05:45
+2746,Ricardo Isasi,03/06/2025 05:46
+2238,Martin Sebastian Coronel,03/06/2025 05:48
+2399,Amelia Griselda Perez,03/06/2025 05:48
+2538,Patricia Suarez,03/06/2025 05:49
+2139,Alejandro Pablo Bertsos,03/06/2025 05:50
+2520,Monica Estela Cabrera,03/06/2025 05:52
+890,Felipa Lopez,03/06/2025 05:55
+2710,Maria de los Angeles Zurita,03/06/2025 05:57
+2580,Oscar Fernandez,03/06/2025 06:00
+1564,Gabriel Alejandro Gambetta,03/06/2025 06:15
+2333,Miguel Angel Delgado,03/06/2025 06:19
+2112,Daniel Alvarez,03/06/2025 06:22
+2386,Andrea Karina Maldonado,03/06/2025 06:24
+2219,Alberto Espinola,03/06/2025 06:27
+2825,Jorge Omar Furno,03/06/2025 06:34
+2072,Sergio Ricardo Fernandez,03/06/2025 06:37
+2293,Osvaldo Maria Borgetto,03/06/2025 06:43
+2438,Hernan Leonardo Bruno,03/06/2025 06:52
+1864,Favio Andres Ventittueli,03/06/2025 06:54
+2727,Mario Alberto Argañaraz,03/06/2025 06:55
+2144,Tomas Gabriel Pallero,03/06/2025 06:55
+2851,Ing. Marcelo Martin Maciel,03/06/2025 06:55
+2487,Hernan Andres Alberto Diaz,03/06/2025 06:55
+2681,Veronica Pamela Serrano,03/06/2025 06:56
+1870,Leonardo Marco Ruiz,03/06/2025 06:57
+2582,Pablo Alberto Blanco,03/06/2025 06:58
+2731,Claudio Fabian Sosa,03/06/2025 06:58
+922,Berta Rosa Mc.Phillips,03/06/2025 07:04
+2314,Pablo Adrian Gonzalez,03/06/2025 07:08
+2588,Javier Maximiliano Nuñez,03/06/2025 07:14
+2843,Celeste Cavallo,03/06/2025 07:14
