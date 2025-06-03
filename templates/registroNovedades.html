@@ -1,30 +1,36 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Novedades</title>
     <link rel="stylesheet" href="../static/css/bootstrap.css">
     <style>
-        table, th, td {
+        table,
+        th,
+        td {
             border: 1px solid black;
             border-collapse: collapse;
         }
-        th, td {
+
+        th,
+        td {
             padding: 8px;
             text-align: left;
         }
     </style>
 </head>
+
 <body>
     {% include 'nav.html' %}
-    
+
     <div class="container mt-5">
         <h1>Novedades</h1>
-        
+
         <div class="mb-3">
             <input type="text" id="searchInput" placeholder="Buscar..." onkeyup="filterTable()" class="form-control">
         </div>
-        
+
         <table id="novedadesTable" class="table table-striped">
             <thead class="table-dark">
                 <tr>
@@ -35,6 +41,7 @@
                     <th>Hora Inicio</th>
                     <th>Hora Fin</th>
                     <th>Motivo</th>
+                    <th>Opciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -47,11 +54,19 @@
                     <td>{{ novedad.hora_inicio }}</td>
                     <td>{{ novedad.hora_fin }}</td>
                     <td>{{ novedad.motivo }}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm eliminar-btn" data-id="{{ novedad.id }}"
+                            data-legajo="{{ novedad.legajo }}" data-motivo="{{ novedad.motivo|escape }}">
+                            Eliminar
+                        </button>
+
+                    </td>
+
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        
+
         <a class="btn btn-primary" href="/novedad" role="button">Cargar Novedad</a>
     </div>
 
@@ -59,6 +74,14 @@
         const input = document.getElementById('searchInput');
 
         input.addEventListener('blur', () => input.focus());
+        document.querySelectorAll('.eliminar-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.dataset.id;
+                const legajo = btn.dataset.legajo;
+                const motivo = btn.dataset.motivo;
+                eliminarNovedad(id, legajo, motivo);
+            });
+        });
 
         function filterTable() {
             const filterValue = input.value.toLowerCase();
@@ -74,6 +97,20 @@
                 row.style.display = match ? '' : 'none';
             });
         }
+        function eliminarNovedad(id, legajo, motivo) {
+            if (confirm(`Estás seguro de que querés eliminar esta novedad?\n${legajo} - ${motivo}`)) {
+                // Podés hacer una petición fetch, Axios, etc.
+                fetch(`/eliminar_novedad/${id}`, { method: 'DELETE' })
+                    .then(res => res.json())
+                    .then(data => {
+                        alert(data.message || "Novedad eliminada.");
+                        location.reload(); // recarga la tabla
+                    })
+                    .catch(err => console.error("Error eliminando novedad:", err));
+            }
+        }
+
     </script>
 </body>
+
 </html>

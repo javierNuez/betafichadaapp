@@ -99,8 +99,13 @@
                         <td>{{ l[3] }}</td>
                         <td>{{ l[4] }} a {{ l[6] }}</td>
                         <td>{{ l[5] }}</td>
+                        {% if l[5] == l[7] %}
+                            <td>Sin salida</td>
+                        {% else %}
+                            <td>{{ l[7] }}</td>
+                        {% endif %}
+
                         
-                        <td>{{ l[7] }}</td>
                         <td title="{{ l[8] if l[8] else '' }}">
     {% if l[8] %}
         {{ l[8][:25] }}{% if l[8]|length > 25 %}...{% endif %}

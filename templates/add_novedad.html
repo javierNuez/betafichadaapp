@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="../static/css/bootstrap.css">
     <title>Cargar Novedad</title>
 </head>
+
 <body>
     {% include 'nav.html' %}
     <div class="container mt-5">
@@ -37,12 +39,80 @@
 
             <div class="mb-3">
                 <label for="motivo" class="form-label">Motivo:</label>
-                <textarea class="form-control" id="motivo" name="motivo" rows="3" required></textarea>
+                <select name="motivo" id="motivo">
+                    <option value="ART Primeros 10 días">ART Primeros 10 días</option>
+                    <option value="Ausencia autorizada">Ausencia autorizada</option>
+                    <option value="Ausencia Home office">Ausencia Home office</option>
+                    <option value="Ausencia injustificada">Ausencia injustificada</option>
+                    <option value="Ausencia x Feriado VAC">Ausencia x Feriado VAC</option>
+                    <option value="Capacitación">Capacitación</option>
+                    <option value="Comisión de servicio">Comisión de servicio</option>
+                    <option value="Desc días enf fam a cargo- Art 32">Desc días enf fam a cargo- Art 32</option>
+                    <option value="Donación de sangre">Donación de sangre</option>
+                    <option value="Días de Maternidad">Días de Maternidad</option>
+                    <option value="Días no trabajados">Días no trabajados</option>
+                    <option value="Enfermedad/accidente priv">Enfermedad/accidente priv</option>
+                    <option value="Examen">Examen</option>
+                    <option value="Excedencia">Excedencia</option>
+                    <option value="Fallecim.familiar directo">Fallecim.familiar directo</option>
+                    <option value="Fallecim.familiar indirec">Fallecim.familiar indirec</option>
+                    <option value="Franco compensatorio">Franco compensatorio</option>
+                    <option value="Horas no trabajadas">Horas no trabajadas</option>
+                    <option value="Llegada tarde autorizada">Llegada tarde autorizada</option>
+                    <option value="Llegada tarde desc. H">Llegada tarde desc. H</option>
+                    <option value="Llegada tarde desc. HyP">Llegada tarde desc. HyP</option>
+                    <option value="Llegada tarde Franco">Llegada tarde Franco</option>
+                    <option value="Llegada tarde Medico">Llegada tarde Medico</option>
+                    <option value="Llegada tarde Tramite">Llegada tarde Tramite</option>
+                    <option value="Licencia especial">Licencia especial</option>
+                    <option value="Licencia sin goce sueldo">Licencia sin goce sueldo</option>
+                    <option value="Matrimonio">Matrimonio</option>
+                    <option value="Más de 10 dias,Em.por ART">Más de 10 dias,Em.por ART</option>
+                    <option value="Mudanza">Mudanza</option>
+                    <option value="Nacimiento de hijo">Nacimiento de hijo</option>
+                    <option value="Permiso gremial">Permiso gremial</option>
+                    <option value="Reserva de puesto">Reserva de puesto</option>
+                    <option value="Retiro autorizado">Retiro autorizado</option>
+                    <option value="Retiro c/desc.Horas">Retiro c/desc.Horas</option>
+                    <option value="Retiro c/desc.HorasPremio">Retiro c/desc.HorasPremio</option>
+                    <option value="Retiro c/desc.Premio">Retiro c/desc.Premio</option>
+                    <option value="Retiro Franco">Retiro Franco</option>
+                    <option value="Retiro Medico">Retiro Medico</option>
+                    <option value="Retiro Tramite">Retiro Tramite</option>
+                    <option value="Suspensión">Suspensión</option>
+                    <option value="Trámites personales">Trámites personales</option>
+                    <option value="Vacaciones">Vacaciones</option>
+                    <option value="Vacaciones Pendientes">Vacaciones Pendientes</option>
+                    <option value="Otro">Otro</option>
+                </select>
             </div>
+
+        <div class="mb-3" id="otro_motivo_container" style="display: none;">
+            <label for="otro_motivo" class="form-label">Especifique otro motivo:</label>
+            <input type="text" class="form-control" id="otro_motivo" name="otro_motivo">
+        </div>
 
             <button type="submit" class="btn btn-primary">Cargar Novedad</button>
         </form>
     </div>
+    <script>
+    const motivoSelect = document.getElementById('motivo');
+    const otroMotivoContainer = document.getElementById('otro_motivo_container');
+    const otroMotivoInput = document.getElementById('otro_motivo');
+
+    motivoSelect.addEventListener('change', function () {
+        if (this.value === 'Otro') {
+            otroMotivoContainer.style.display = 'block';
+            otroMotivoInput.required = true;
+        } else {
+            otroMotivoContainer.style.display = 'none';
+            otroMotivoInput.required = false;
+            otroMotivoInput.value = ''; // limpia si cambia a otra opción
+        }
+    });
+</script>
+
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

@@ -530,7 +530,13 @@ def obtener_ausentes_del_dia(fecha_base):
     p.sector AS area,
     p.legajo,
     p.apellido || ' ' || p.nombre AS apellidoNombre,
-    'Ausente' AS observaciones,
+    COALESCE((
+        SELECT 
+            n.motivo || ' (desde ' || DATE(n.fecha_inicio) || ' hasta ' || DATE(n.fecha_fin) || ')'
+        FROM novedades n
+        WHERE n.legajo = p.legajo
+          AND DATE(?) BETWEEN DATE(n.fecha_inicio) AND DATE(n.fecha_fin)
+    ), 'Ausente') AS observaciones,
     p.relacion
 FROM personas p
 WHERE p.legajo <= 4000
@@ -540,11 +546,13 @@ WHERE p.legajo <= 4000
       FROM fichadas f
       WHERE f.legajo = p.legajo
         AND DATE(f.fechaHora) = DATE(?)
-  )
+  );
+
+
 
     """
 
-    cursor.execute(query, (fecha_base, fecha_base))
+    cursor.execute(query, (fecha_base, fecha_base,fecha_base))
     resultados = cursor.fetchall()
     conn.close()
     return resultados
@@ -1081,6 +1089,9 @@ def agregar_novedad():
         hora_fin = request.form['hora_fin']
         motivo = request.form['motivo']
         print("Novedad:", legajo, motivo)
+        if motivo == "Otro":
+            motivo = request.form.get('otro_motivo', '')
+
         try:
             NovedadService.cargar_novedad(int(legajo), fecha_inicio, fecha_fin, hora_inicio, hora_fin, motivo)
             
@@ -1237,6 +1248,12 @@ def obtener_datos_fichadas(fecha_desde_str, fecha_hasta_str, tipo=None, sector=N
     return datos
 
 
+
+
+@app.route("/eliminar_novedad/<int:id>", methods=["DELETE"])
+def eliminar_novedad(id):
+    resultado = NovedadService.eliminar_novedad_por_id(id)
+    return jsonify({"message": resultado["message"]}), 200 if resultado["success"] else 404
 
 
 
