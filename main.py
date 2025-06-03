@@ -446,13 +446,19 @@ SELECT
     c.hora_fin,
     c.salida,
 
+    -- Observaciones con motivo si hay novedad
     CASE 
-        WHEN c.entrada IS NOT NULL AND c.salida IS NOT NULL AND c.entrada = c.salida THEN 'Revisar (única fichada, aún en la empresa)'
-        WHEN c.salida < c.hora_fin THEN 'Ret.Anticipado'
+        WHEN c.entrada IS NOT NULL AND c.salida IS NOT NULL AND c.entrada = c.salida THEN 'Aún en la empresa'
+        WHEN c.salida < c.hora_fin THEN 'Con ret. anticipado'
         WHEN c.entrada IS NOT NULL AND c.salida IS NULL THEN 'Dentro de la empresa'
         WHEN c.entrada IS NULL AND c.salida IS NOT NULL THEN 'Revisar'
         WHEN c.entrada > c.hora_inicio THEN 'Tarde'
         ELSE '-'
+    END 
+    || 
+    CASE 
+        WHEN n.motivo IS NOT NULL THEN ' ' || n.motivo
+        ELSE ''
     END AS observaciones,
 
     CASE 
@@ -483,8 +489,12 @@ SELECT
 
 FROM clasificadas c
 JOIN personas p ON p.legajo = c.legajo
+LEFT JOIN novedades n 
+    ON n.legajo = c.legajo 
+    AND DATE(c.fecha) BETWEEN DATE(n.fecha_inicio) AND DATE(n.fecha_fin)
 WHERE p.sector != 'Fuerza de ventas' 
   AND p.legajo < 4000
+  AND p.legajo != 1231
 ORDER BY c.fecha, p.legajo;
 
 '''
