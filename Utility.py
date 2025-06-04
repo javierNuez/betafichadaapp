@@ -294,7 +294,7 @@ def traerNuevasFichadas():
 
 
 def actualizar_personas_desde_excel():
-    conn = DataBaseInitializer.get_db_connection("personas")
+    conn = DataBaseInitializer.get_db_connection()
     # Leer el Excel
     df = pd.read_excel('Relacion.xlsx')
 
@@ -323,7 +323,7 @@ def actualizar_personas_desde_excel():
     print("Actualización completa.")
 
 def actualizarCategorias():
-    conn = DataBaseInitializer.get_db_connection("personas")
+    conn = DataBaseInitializer.get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("""

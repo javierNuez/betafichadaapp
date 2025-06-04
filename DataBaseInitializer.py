@@ -14,7 +14,7 @@ def redondear_a_15_minutos(hora):
     return f"{hora_redondeada.hour:02d}:{hora_redondeada.minute:02d}"
 
 def obtener_horarios_estimados():
-    conn = get_db_connection("fichadas")
+    conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT legajo, fechaHora FROM fichadas ORDER BY legajo, fechaHora")
     registros = cursor.fetchall()

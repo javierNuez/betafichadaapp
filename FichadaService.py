@@ -9,7 +9,7 @@ rangoHoras = 3 #rango de horas para tomar una fichada válida.
 
 def registrar_fichada(legajo, nombre):
     try:
-        conn = DataBaseInitializer.get_db_connection("fichadas")
+        conn = DataBaseInitializer.get_db_connection()
         cursor = conn.cursor()
         fechaHora = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
         cursor.execute('''
@@ -26,7 +26,7 @@ def registrar_fichada(legajo, nombre):
 
 def registrar_fichada_manual(legajo, nombre, fechaHora):
     try:
-        conn = DataBaseInitializer.get_db_connection("fichadas")
+        conn = DataBaseInitializer.get_db_connection()
         cursor = conn.cursor()
         
         cursor.execute('''
@@ -194,7 +194,7 @@ def generar_fichadas(legajo, horaInicio, horaFin, puntualidad):
     return fichadas
 
 def agregar_fichadas_a_bd(fichadas):
-    conn = DataBaseInitializer.get_db_connection("fichadas")
+    conn = DataBaseInitializer.get_db_connection()
     cursor = conn.cursor()
     
     # Crear la tabla si no existe

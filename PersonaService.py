@@ -83,7 +83,7 @@ def check_legajo(legajo):
 def obtener_todos_los_legajos():
     try:
         # Conexiones y datos
-        conn = DataBaseInitializer.get_db_connection("personas")
+        conn = DataBaseInitializer.get_db_connection()
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
 
